@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<config>
+	<win32>
+		<!-- <srcDirName value="F:\mp3car\010MP3CAR\06_Björk_Telegram" /> -->
+		<srcDirName>F:\mp3car\010MP3CAR\06_Björk_Telegram</srcDirName>
+		<tgtDirName value="F:\mp3car\010MP3STICK2" />
+		<mp3Encoder value="D:\lame\lame.exe" />
+	</win32>
+	<linux2>
+		<!-- <srcDirName value="/localdrives/F/mp3car/010MP3CAR/06_Björk_Telegram" /> -->
+		<srcDirName>/localdrives/F/mp3car/010MP3CAR/06_Björk_Telegram</srcDirName>
+		<tgtDirName value="/localdrives/F/mp3car/010MP3STICK2" />
+		<mp3Encoder value="lame" />
+	</linux2>
+	<generic>
+		<vbrQuality value="9" />
+	</generic>
+</config>
