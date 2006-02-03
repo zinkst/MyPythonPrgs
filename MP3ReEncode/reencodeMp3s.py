@@ -121,25 +121,25 @@ def initLogger():
 def readConfigFromXML(configFileName):
     xmldoc = minidom.parse(configFileName)
     #print xmldoc.toxml().encode("utf-8")
-    logging.debug(xmldoc.toxml("latin1"))
+    logging.debug(xmldoc.toxml(defaultEncoding))
     configNode = xmldoc.firstChild
     for l1Node in configNode.childNodes:
         if l1Node.nodeName == sys.platform:
             for l2Node in l1Node.childNodes:
                 if l2Node.nodeName == "srcDirName":
                     """ Zugriff auf den Wert des tags """
-                    #srcDirName = l2Node.getAttribute("value").encode("latin1")
-                    srcDirName=l2Node.firstChild.nodeValue.encode("latin1")
+                    #srcDirName = l2Node.getAttribute("value").encode(defaultEncoding)
+                    srcDirName=l2Node.firstChild.nodeValue.encode(defaultEncoding)
                 if l2Node.nodeName == "tgtDirName":
                     """ Zugriff auf ein Attribut des tags """
-                    tgtDirName = l2Node.getAttribute("value").encode("latin1")
+                    tgtDirName = l2Node.getAttribute("value").encode(defaultEncoding)
                 if l2Node.nodeName == "mp3Encoder":
-                    mp3Encoder = l2Node.getAttribute("value").encode("latin1")
+                    mp3Encoder = l2Node.getAttribute("value").encode(defaultEncoding)
          
         elif l1Node.nodeName == "generic":
             for l2Node in l1Node.childNodes:
                 if l2Node.nodeName == "vbrQuality":
-                    vbrQuality = l2Node.getAttribute("value").encode("latin1")
+                    vbrQuality = l2Node.getAttribute("value").encode(defaultEncoding)
                                  
              
     logging.debug("srcDirName = %s" % srcDirName) 
@@ -155,6 +155,11 @@ def readConfigFromXML(configFileName):
 
 
 rootLogger = initLogger()
+if sys.platform == "win32":
+  defaultEncoding="latin1"
+else:
+  defaultEncoding="UTF-8"
+
 if len(sys.argv) == 1 :
     print description
     print sys.argv[0] + "<xml_configfile>"
