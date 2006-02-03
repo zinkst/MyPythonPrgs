@@ -63,7 +63,7 @@ def processMP3file(srcCompleteFileName,tgtCompleteFileName):
     else:
         command = "%s --tt \"%s\" --ta \"%s\" --tl \"%s\" --tn %d --ty %s --tg %s -V %d --silent --add-id3v2  \"%s\" \"%s\"" % (mp3Encoder,curSongName,curArtist,curAlbum,curTrackNumber,curYear,curGenre,vbrQuality,srcCompleteFileName,tgtCompleteFileName)
     print command
-    #os.system(command)
+    os.system(command)
 
 ############################################################################
 def processMP3fileDIC(srcCompleteFileName,tgtCompleteFileName):
@@ -102,7 +102,7 @@ def processMP3fileDIC(srcCompleteFileName,tgtCompleteFileName):
    
     command = "%s %s %s %s" % (mp3Encoder,id3opts,opts,srcTgt)
     print command
-#    os.system(command)
+    os.system(command)
 
 ############################################################################
 def initLogger():
