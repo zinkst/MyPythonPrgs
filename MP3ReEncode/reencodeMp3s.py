@@ -5,7 +5,8 @@ reencoding of the mp3's. The reencoded files are stored under target directory
 preserving the directory structure. ID3 tag information (album,songname,artist,year
 genre) are also preserved.
 It uses lame for reencoding. Configuration options must be set in an xml file.
-In the xml file srcDir, tgtDir, path to Lame executable, and vbrQuality must be specified
+In the xml file srcDir, tgtDir, path to Lame executable, and lame encoding options must be specified
+For id3 scanning the module pytagger is used. see: http://www.liquidx.net/pytagger/
 """
 
 import os
@@ -94,21 +95,21 @@ def processMP3fileDIC(srcCompleteFileName,tgtCompleteFileName):
              id3opts = "%s --%s \"%d\"" %(id3opts,attributeDIC[curKey],mp3info_dic[curKey])  
          #id3opts = id3opts + "--" + attributeDIC[curKey] + " \"" + mp3info_dic[curKey] + "\""
     
-    opts = "-V %s --silent --add-id3v2 " %(vbrQuality)
+    #opts = "-V %s --silent --add-id3v2 " %(vbrQuality)
     srcTgt = "\"%s\" \"%s\"" % (srcCompleteFileName,tgtCompleteFileName)
     logging.debug("srcTgt = " + srcTgt)
     logging.debug("id3opts = " + id3opts)
-    logging.debug("opts = " + opts)
+    logging.debug("encodingOptions = " + encodingOptions)
    
-    command = "%s %s %s %s" % (mp3Encoder,id3opts,opts,srcTgt)
+    command = "%s %s %s %s" % (mp3Encoder,id3opts,encodingOptions,srcTgt)
     print command
-    os.system(command)
+    #os.system(command)
 
 ############################################################################
 def initLogger():
     try: 
         rootLogger = logging.getLogger()
-        logging.config.fileConfig("pyLoggerConfig")
+        logging.config.fileConfig("pyLoggerConfig.cfg")
     except:    
         logHandler = logging.StreamHandler(sys.stdout)
         #logging.basicConfig(stream=logHandler)
@@ -119,7 +120,12 @@ def initLogger():
 
 ############################################################################
 def readConfigFromXML(configFileName):
-    xmldoc = minidom.parse(configFileName)
+    try:
+        xmldoc = minidom.parse(configFileName)
+    except IOError:
+        print "config file " + configFileName + " not found"
+        sys.exit(1)
+        
     #print xmldoc.toxml().encode("utf-8")
     logging.debug(xmldoc.toxml(defaultEncoding))
     configNode = xmldoc.firstChild
@@ -138,16 +144,16 @@ def readConfigFromXML(configFileName):
          
         elif l1Node.nodeName == "generic":
             for l2Node in l1Node.childNodes:
-                if l2Node.nodeName == "vbrQuality":
-                    vbrQuality = l2Node.getAttribute("value").encode(defaultEncoding)
+                if l2Node.nodeName == "encodingOptions":
+                    encodingOptions = l2Node.getAttribute("value").encode(defaultEncoding)
                                  
              
     logging.debug("srcDirName = %s" % srcDirName) 
     logging.debug("tgtDirName = %s" % tgtDirName) 
     logging.debug("mp3Encoder = %s" % mp3Encoder) 
-    logging.debug("vbrQuality = %s" % vbrQuality) 
+    logging.debug("encodingOptions = %s" % encodingOptions) 
     
-    return (srcDirName,tgtDirName,mp3Encoder,vbrQuality)
+    return (srcDirName,tgtDirName,mp3Encoder,encodingOptions)
 
 ############################################################################
 # main starts here
@@ -167,12 +173,12 @@ if len(sys.argv) == 1 :
 else:
     configFileName=sys.argv[1]
 
-(srcDirName,tgtDirName,mp3Encoder,vbrQuality) = readConfigFromXML(configFileName)
+(srcDirName,tgtDirName,mp3Encoder,encodingOptions) = readConfigFromXML(configFileName)
 
 logging.info("srcDirName = %s" % srcDirName) 
 logging.info("tgtDirName = %s" % tgtDirName) 
 logging.info("mp3Encoder = %s" % mp3Encoder) 
-logging.info("vbrQuality = %s" % vbrQuality) 
+logging.info("encodingOptions = %s" % encodingOptions) 
     
  
 for Verz, VerzList, DateiListe in os.walk (srcDirName):

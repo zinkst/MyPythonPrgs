@@ -13,6 +13,6 @@
 		<mp3Encoder value="lame" />
 	</linux2>
 	<generic>
-		<vbrQuality value="9" />
+		<encodingOptions value="-V 9 --silent --add-id3v2" />
 	</generic>
 </config>
