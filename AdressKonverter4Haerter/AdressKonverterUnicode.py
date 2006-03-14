@@ -201,16 +201,18 @@ def handleArchitektLine(curLine,fsock,addressLinesIndex,curDict):
             logging.debug("city = %s " % curDict["city"])
             addressLines.append(formatDictAsLine(curDict))
             curDict.clear()
-            curDict["name"] = forename + ' ' + surname
-            logging.debug("name = %s " % curDict["name"])
+            curDict["forename"] = forename 
+            curDict["surname"] = surname.strip() 
+            logging.debug("name = %s %s" % (curDict["forename"], curDict["surname"]) )
     elif curLine.find(',') != -1:
         logging.debug("found line with comma => single name")
         curDict.clear()
         (surname,forename) = curLine.split(',')
         forename = forename.rstrip('\n').strip()
         surname = surname.strip() 
-        curDict["name"] = forename + ' ' + surname    
-
+        curDict["forename"] = forename 
+        curDict["surname"] = surname 
+            
     else:
         logging.debug("street = %s" % curLine)
         curDict["street"] = curLine.rstrip('\n').strip()
@@ -218,7 +220,7 @@ def handleArchitektLine(curLine,fsock,addressLinesIndex,curDict):
 
 ############################################################################
 def formatDictAsLine(curDict):
-    line = u'"' + curDict["title"] + '","' + curDict["name"] + '","' + curDict["street"]  + '","' + curDict["plz"] + '","' + curDict["city"] + '"'
+    line = u'"' + curDict["title"] + '","' + curDict["forename"] + '","' + curDict["surname"] + '","' + curDict["street"]  + '","' + curDict["plz"] + '","' + curDict["city"] + '"'
     return line
 
 ############################################################################

@@ -13,6 +13,8 @@
 		<!-- 
 		<srcFilename value="Architekten72_kwrite_utf8_notab.txt" />
 		<tgtFilename value="Architekten72_kwrite_utf8.csv" />
+		<srcFilename value="Architekten71_utf8_notab.txt" />
+		<tgtFilename value="Architekten71_utf8_notab.csv" />
 		-->
 		<srcFilename value="Innenarchitekten7_utf8_notab_kwrite.txt" />
 		<tgtFilename value="Innenarchitekten7_utf8.csv" />
