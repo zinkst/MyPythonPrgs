@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launchConfiguration type="org.python.pydev.debug.regularLaunchConfigurationType">
+<stringAttribute key="org.python.pydev.debug.ATTR_PROJECT" value="MyPythonPrgs"/>
+<stringAttribute key="org.eclipse.ui.externaltools.ATTR_TOOL_ARGUMENTS" value="reencodeMp3sConfig.xml"/>
+<stringAttribute key="org.eclipse.ui.externaltools.ATTR_WORKING_DIRECTORY" value="E:/userdata/persdata/Stefan/myPrg/Python/MP3ReEncode"/>
+<stringAttribute key="org.eclipse.ui.externaltools.ATTR_LOCATION" value="E:/userdata/persdata/Stefan/myPrg/Python/MP3ReEncode/reencodeMp3s.py"/>
+<booleanAttribute key="org.eclipse.debug.core.appendEnvironmentVariables" value="true"/>
+<stringAttribute key="org.python.pydev.debug.ATTR_INTERPRETER" value="D:\Python\python.exe"/>
+<intAttribute key="org.python.pydev.debug.ATTR_RESOURCE_TYPE" value="1"/>
+</launchConfiguration>
