@@ -10,8 +10,8 @@
 		<tgtDirName value="/localdrives/E/userdata/persdata/Marion/Autolackiererei_Haertter" />
 	</linux2>
 	<generic>
-		<srcFilename value="AdressenVersicherungen_utf8.txt" />
-		<tgtFilename value="AdressenVersicherungen_utf8.csv" />
+		<srcFilename value="AutohaeuserUSW.txt" />
+		<tgtFilename value="AutohaeuserUSW.csv" />
 		<fileformat value="Versicherung" />
 	</generic>
 </config>
