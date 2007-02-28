@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<config>
+	<win32>
+		<srcDirName>D:\persdata\Stefan\OpenOffice\Adressdatei\</srcDirName>
+		<tgtDirName value="D:\persdata\Stefan\OpenOffice\Adressdatei\" />
+	</win32>
+	<linux2>
+		<!-- <srcDirName value="/localdrives/F/mp3car/010MP3CAR/06_Björk_Telegram" /> -->
+		<srcDirName>/localdrives/D/persdata/Stefan/myPrg/Python/ConvertAdressCSV</srcDirName>
+		<tgtDirName value="/localdrives/D/persdata/Stefan/OpenOffice/Adressdatei" />
+	</linux2>
+	<generic>
+		<!-- 
+		<srcFilename value="InputProblems_UTF8.csv" />
+		<tgtFilename value="Thunderbird_Problems.csv" />
+		-->
+		<srcFilename value="Adresstabelle_UTF8_withComma.csv" />
+		<tgtFilename value="Thunderbird_withComma.csv" />
+		
+	</generic>
+</config>
