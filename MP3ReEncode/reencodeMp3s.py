@@ -103,7 +103,7 @@ def processMP3fileDIC(srcCompleteFileName,tgtCompleteFileName):
    
     command = "%s %s %s %s" % (mp3Encoder,id3opts,encodingOptions,srcTgt)
     print command
-    #os.system(command)
+    os.system(command)
 
 ############################################################################
 def initLogger():

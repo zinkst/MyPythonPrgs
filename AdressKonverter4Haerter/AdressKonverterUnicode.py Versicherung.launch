@@ -1,9 +1,9 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <launchConfiguration type="org.python.pydev.debug.regularLaunchConfigurationType">
+<booleanAttribute key="org.eclipse.debug.core.appendEnvironmentVariables" value="true"/>
 <stringAttribute key="org.python.pydev.debug.ATTR_PROJECT" value="MyPythonPrgs"/>
 <stringAttribute key="org.eclipse.ui.externaltools.ATTR_TOOL_ARGUMENTS" value="AdressKonverterConfigVersicherung.xml"/>
-<stringAttribute key="org.eclipse.ui.externaltools.ATTR_WORKING_DIRECTORY" value="E:\userdata\persdata\Stefan\myPrg\Python\AdressKonverter\"/>
-<stringAttribute key="org.eclipse.ui.externaltools.ATTR_LOCATION" value="E:\userdata\persdata\Stefan\myPrg\Python\AdressKonverter\AdressKonverterUnicode.py"/>
-<booleanAttribute key="org.eclipse.debug.core.appendEnvironmentVariables" value="true"/>
-<stringAttribute key="org.python.pydev.debug.ATTR_INTERPRETER" value="D:\Python\python.exe"/>
+<stringAttribute key="org.eclipse.ui.externaltools.ATTR_WORKING_DIRECTORY" value="D:\persdata\Stefan\myPrg\Python\AdressKonverter\"/>
+<stringAttribute key="org.eclipse.ui.externaltools.ATTR_LOCATION" value="D:\persdata\Stefan\myPrg\Python\AdressKonverter\AdressKonverterUnicode.py"/>
+<stringAttribute key="org.python.pydev.debug.ATTR_INTERPRETER" value="c:\programs\python25\pythonw.exe"/>
 </launchConfiguration>
