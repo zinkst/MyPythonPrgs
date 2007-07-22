@@ -73,7 +73,12 @@ def readConfigFromXML(configFileName):
     logging.debug("srcFilename = %s" % srcFilename) 
     logging.debug("tgtFilename = %s" % tgtFilename) 
     
-    return (srcDirName, tgtDirName, srcFilename, tgtFilename)
+    srcName=os.path.join(srcDirName, srcFilename)
+    tgtName=os.path.join(tgtDirName, tgtFilename)
+    
+    logging.info("srcName = %s" % srcName) 
+    logging.info("tgtName = %s" % srcName) 
+    return (srcName, tgtName)
 
 ############################################################################
 def printDictionaryDynamic(inDict):
@@ -81,40 +86,21 @@ def printDictionaryDynamic(inDict):
     logging.debug("Dictionary["+curKey+"]="+inDict[curKey])
 
 ############################################################################
-def printDictionary(inDict):
-  logging.debug( "Vorname="+inDict["Vorname"]
-              +", Nachname="+inDict["Nachname"]
-              +", Strasse="+inDict["Strasse"]
-              +", PLZ="+inDict["PLZ"]
-              +", Ort="+inDict["Ort"]
-              +", Staat="+inDict["Staat"]
-              +", Telefon="+inDict["Telefon"]
-              +", mobil="+inDict["mobil"]
-              +", Telefongesch="+inDict["Telefongesch"]
-              +", Fax="+inDict["Fax"]
-              +", Geburtsdatum="+inDict["Geburtsdatum"]
-              +", Geburtstag="+inDict["Geburtstag"]
-              +", Geburtsmonat="+inDict["Geburtsmonat"]
-              +", Geburtsjahr="+inDict["Geburtsjahr"]
-              +", EMail1="+inDict["EMail1"]
-              +", EMail2="+inDict["EMail2"]
-              +", Nickname="+inDict["Nickname"]
-              +", Webseite="+inDict["Webseite"]
-              +", Kommentar="+inDict["Kommentar"]
-              )
-############################################################################
 def getNextLineEntry(inputString, keyname):
   #logging.debug("inputString="+inputString)
-  separator = ','
+  inMiddleSeparator = inEnclosingChar+inSeparator
   if re.search(',',inputString):
-    if inputString.startsWith('"'):
-      # nexterty is inbetween "
-      (next,rest)=inputString.split(separator,1)
+    if inputString.startswith('\''+inEnclosingChar):
+      # nextentry is inbetween ".."
+      (next,rest)=inputString.split(inMiddleSeparator,1)
+      # next = '"??
+    else:
+      (next,rest)=inputString.split(inSeparator,1)
     if next != '':
-      if re.search('"',next):
+      if re.search(inEnclosingChar,next):
         #logging.debug("next="+next)
-        nextEntry = next.replace('\'"','')
-        nextEntry =nextEntry.replace('"','')
+        nextEntry = next.replace('\''+inEnclosingChar,'')
+        nextEntry =nextEntry.replace(inEnclosingChar,'')
       else:
         # this must be Geburstdatum 
         nextEntry = next.replace("\'",'')
@@ -123,8 +109,8 @@ def getNextLineEntry(inputString, keyname):
     rest = "'"+rest
   else:
     #last Entry eached  
-    nextEntry = inputString.replace('\'"','')
-    nextEntry =nextEntry.replace('"','')
+    nextEntry = inputString.replace(inMiddleSeparator,'')
+    nextEntry =nextEntry.replace(inEnclosingChar,'')
     rest = ''  
   curDict[keyname]=nextEntry  
   logging.debug("curDict["+keyname+"]="+curDict[keyname])
@@ -134,7 +120,6 @@ def getNextLineEntry(inputString, keyname):
 def handleSrcFileLine(curLine):
 #  "Vorname","Nachname","Straße privat","Postleitzahl privat","Ort privat","Staat privat","Telefon privat","Pager","Telefon geschäftlich","Geburtstag",
 #  "E-Mail-Adresse","E-Mail 2:Adresse","Nickname","Webseite"
-    separator = ','
     keyGeburtsdatum="Geburtsdatum"
     logging.debug("curLine="+curLine)
     #curLine = curLine.replace(',',separator)
@@ -183,82 +168,6 @@ def computeBirthdayValues(Geburtsdatum):
 
 
 
-############################################################################
-def handleSrcFileLineOld(curLine, fsock, addressLinesIndex):
-#  "Vorname","Nachname","Straße privat","Postleitzahl privat","Ort privat","Staat privat","Telefon privat","Pager","Telefon geschäftlich","Geburtstag",
-#  "E-Mail-Adresse","E-Mail 2:Adresse","Nickname","Webseite"
-    separator = ';'
-    curLine = curLine.replace(',',separator)
-    if curLine.startswith('#'):
-      logging.debug("do nothing")
-    elif curLine.startswith('"Vorname'):
-      logging.debug("do not process headerline")
-    else: 
-      #(Vorname, Nachname, Strasse, PLZ, Ort, Staat, Telefon, mobil, Telefongesch, Fax,Geburtstag, EMail1, EMail2, Nickname, Webseite,Kommentar)
-      (Vorname,rest) = curLine.split(separator,1)
-      Vorname = Vorname.replace('"','')
-      curDict = {"Vorname" : Vorname}
-      (Nachname,rest)=rest.split(separator,1)
-      Nachname = Nachname.replace('"','')
-      curDict["Nachname"]=Nachname
-      (Strasse,rest)=rest.split(separator,1)
-      Strasse = Strasse.replace('"','')
-      curDict["Strasse"]=Strasse
-      (PLZ,rest)=rest.split(separator,1)
-      PLZ = PLZ.replace('"','')
-      curDict["PLZ"]=PLZ
-      (Ort,rest)=rest.split(separator,1)
-      Ort = Ort.replace('"','')
-      curDict["Ort"]=Ort
-      (Staat,rest)=rest.split(separator,1)
-      Staat = Staat.replace('"','')
-      curDict["Staat"]=Staat
-      (Telefon,rest)=rest.split(separator,1)
-      Telefon = Telefon.replace('"','')
-      curDict["Telefon"]=Telefon
-      (mobil,rest)=rest.split(separator,1)
-      mobil = mobil.replace('"','')
-      curDict["mobil"]=mobil
-      (Telefongesch,rest)=rest.split(separator,1)
-      Telefongesch = Telefongesch.replace('"','')
-      curDict["Telefongesch"]=Telefongesch
-      (Fax,rest)=rest.split(separator,1)
-      Fax = Fax.replace('"','')
-      curDict["Fax"]=Fax
-      (Geburtsdatum,rest)=rest.split(separator,1)
-      Geburtsdatum = Geburtsdatum.replace('"','')
-      curDict["Geburtsdatum"]=Geburtsdatum
-      if re.match(u'\d\d\.\d\d\.\d\d..',Geburtsdatum):
-        logging.debug("Geburtsdatum="+Geburtsdatum)
-        (Geburtstag,Geburtsrest)=Geburtsdatum.split('.',1)
-        curDict["Geburtstag"]=Geburtstag
-        (Geburtsmonat,Geburtsrest)=Geburtsrest.split('.',1)
-        curDict["Geburtsmonat"]=Geburtsmonat
-        Geburtsjahr=Geburtsrest
-        curDict["Geburtsjahr"]=Geburtsjahr
-      else:
-        logging.debug("Geburtsdatum is empty="+Geburtsdatum)
-        curDict["Geburtsjahr"]=''
-        curDict["Geburtsmonat"]=''
-        curDict["Geburtstag"]=''
-      (EMail1,rest)=rest.split(separator,1)
-      EMail1 = EMail1.replace('"','')
-      curDict["EMail1"]=EMail1
-      (EMail2,rest)=rest.split(separator,1)
-      EMail2 = EMail2.replace('"','')
-      curDict["EMail2"]=EMail2
-      (Nickname,rest)=rest.split(separator,1)
-      Nickname = Nickname.replace('"','')
-      curDict["Nickname"]=Nickname
-      (Webseite,rest)=rest.split(separator,1)
-      Webseite = Webseite.replace('"','')
-      curDict["Webseite"]=Webseite
-      Kommentar=rest
-      Kommentar = Kommentar.replace('"','')
-      curDict["Kommentar"]=Kommentar
-      addressLines.append(curDict.copy())
-      addressLinesIndex=addressLinesIndex + 1  
-    return addressLinesIndex
 
 ############################################################################
 def processSrcFile(srcName):
@@ -290,39 +199,36 @@ def processSrcFile(srcName):
 
 ############################################################################
 def formatDictAsThunderbirdLine(inDict):
-    separator = '","'
+    tbSeparator = ','
+    tbEnclosingChar='"'
+    outSep = tbEnclosingChar+tbSeparator+tbEnclosingChar
     #printDictionary(inDict)
     printDictionaryDynamic(inDict)
-    line = '"' + inDict["Nachname"] + \
-           separator +  inDict["Vorname"] + \
-           separator + inDict["Nickname"] + \
-           separator + inDict["Nickname"] + \
-           separator + inDict["EMail1"] + \
-           separator + inDict["EMail2"] + \
-           separator + inDict["Telefongesch"] + \
-           separator + inDict["Telefon"] + \
-           separator + inDict["Fax"] + \
-           separator + \
-           separator + inDict["mobil"] + \
-           separator + inDict["Strasse"] + \
-           separator + \
-           separator + inDict["Ort"] + \
-           separator + \
-           separator + inDict["PLZ"] + \
-           separator + inDict["Staat"] + \
+    line = tbEnclosingChar + inDict["Nachname"] + \
+           outSep +  inDict["Vorname"] + \
+           outSep + inDict["Nickname"] + \
+           outSep + inDict["Nickname"] + \
+           outSep + inDict["EMail1"] + \
+           outSep + inDict["EMail2"] + \
+           outSep + inDict["Telefongesch"] + \
+           outSep + inDict["Telefon"] + \
+           outSep + inDict["Fax"] + \
+           outSep + \
+           outSep + inDict["mobil"] + \
+           outSep + inDict["Strasse"] + \
+           outSep + \
+           outSep + inDict["Ort"] + \
+           outSep + \
+           outSep + inDict["PLZ"] + \
+           outSep + inDict["Staat"] + \
            '",,,,,,,,,"' + \
-           separator + inDict["Webseite"] + \
-           separator + \
-           separator + inDict["Geburtsjahr"] + \
-           separator + inDict["Geburtsmonat"] + \
-           separator + inDict["Geburtstag"] + \
+           outSep + inDict["Webseite"] + \
+           outSep + \
+           outSep + inDict["Geburtsjahr"] + \
+           outSep + inDict["Geburtsmonat"] + \
+           outSep + inDict["Geburtstag"] + \
            '",,,,,'
-
-
     return line
-
-############################################################################
-
 
 ###########################################################################
 def writeOutput(tgtName):
@@ -333,16 +239,39 @@ def writeOutput(tgtName):
             for curAddressDict in addressLines:
                 #logging.info("curAddress = %s" % curAddress)
                 outline=formatDictAsThunderbirdLine(curAddressDict)
-                logging.debug("outline="+outline)
+                logging.info("outline="+outline)
                 outLine=outline + '\r\n'
                 outfile.write(outLine)
         finally:
             outfile.close()
     except IOError:
-        logging.info("error opening file %s" % srcName) 
+        logging.info("error opening file %s" % tgtName) 
     return 1
     
-        
+###########################################################################
+def testsnippets():
+  testString ='"test","2test2",,,'
+  regexPattern = re.compile(r'\A".*"')
+  matchObject = regexPattern.match(testString)
+  if matchObject:
+    print(matchObject.group())
+    print(matchObject.span())
+  else:
+    print("no match found")  
+  
+  listOfmatches = regexPattern.findall(testString)
+  print listOfmatches
+  
+  endindex = testString.find('test')
+  result = testString[0:endindex+2]
+  print (endindex)
+  print ("result="+result)
+
+  count = testString.count('test')
+  print (count)
+  
+  (left,sep,right)=testString.partition('\A".*"')
+  print("sep="+sep)      
 
 ############################################################################
 # main starts here
@@ -351,11 +280,12 @@ def writeOutput(tgtName):
 
 rootLogger = initLogger()
 if sys.platform == "win32":
-  defaultEncoding="latin1"
-  #defaultEncoding="UTF-8"
+  #defaultEncoding="latin1"
+  defaultEncoding="UTF-8"
 else:
   defaultEncoding="UTF-8"
 
+#testsnippets()
 
 if len(sys.argv) == 1 :
     print description
@@ -364,21 +294,12 @@ if len(sys.argv) == 1 :
 else:
     configFileName=sys.argv[1]
 
-(srcDirName, tgtDirName, srcFilename, tgtFilename) = readConfigFromXML(configFileName)
 
-logging.info("srcDirName = %s" % srcDirName) 
-logging.info("tgtDirName = %s" % tgtDirName) 
-logging.info("srcFilename = %s" % srcFilename) 
-logging.info("tgtFilename = %s" % tgtFilename) 
-
-srcName=os.path.join(srcDirName, srcFilename)
-tgtName=os.path.join(tgtDirName, tgtFilename)
-
-logging.info("srcName = %s" % srcName) 
-
-# global Array
+# global Variables
+inSeparator = ','
+inEnclosingChar='"'
 addressLines = []
 curDict = {}
+(srcName, tgtName) = readConfigFromXML(configFileName)
 processSrcFile(srcName)
-
 writeOutput(tgtName)

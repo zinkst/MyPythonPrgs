@@ -3,12 +3,12 @@
 <booleanAttribute key="org.eclipse.debug.core.appendEnvironmentVariables" value="true"/>
 <stringAttribute key="org.python.pydev.debug.ATTR_PROJECT" value="MyPythonPrgs"/>
 <stringAttribute key="org.eclipse.ui.externaltools.ATTR_TOOL_ARGUMENTS" value="ConvertAdressCSV.xml"/>
-<stringAttribute key="org.eclipse.ui.externaltools.ATTR_WORKING_DIRECTORY" value="D:\persdata\Stefan\myPrg\Python\ConvertAdressCSV\"/>
-<stringAttribute key="org.eclipse.ui.externaltools.ATTR_LOCATION" value="D:\persdata\Stefan\myPrg\Python\ConvertAdressCSV\ConvertAdressCSV.py"/>
+<stringAttribute key="org.eclipse.ui.externaltools.ATTR_WORKING_DIRECTORY" value="${myPrg_loc}/MyPythonPrgs/ConvertAdressCSV/"/>
+<stringAttribute key="org.eclipse.ui.externaltools.ATTR_LOCATION" value="${myPrg_loc}/MyPythonPrgs/ConvertAdressCSV/ConvertAdressCSV.py"/>
 <listAttribute key="org.eclipse.debug.ui.favoriteGroups">
 <listEntry value="org.eclipse.debug.ui.launchGroup.debug"/>
 <listEntry value="org.eclipse.debug.ui.launchGroup.run"/>
 </listAttribute>
-<stringAttribute key="org.python.pydev.debug.ATTR_INTERPRETER" value="c:\programs\python25\pythonw.exe"/>
+<stringAttribute key="org.python.pydev.debug.ATTR_INTERPRETER" value="__default"/>
 <stringAttribute key="org.eclipse.debug.ui.ATTR_CONSOLE_ENCODING" value="UTF-8"/>
 </launchConfiguration>
