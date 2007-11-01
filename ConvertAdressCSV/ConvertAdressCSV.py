@@ -77,7 +77,7 @@ def readConfigFromXML(configFileName):
     tgtName=os.path.join(tgtDirName, tgtFilename)
     
     logging.info("srcName = %s" % srcName) 
-    logging.info("tgtName = %s" % srcName) 
+    logging.info("tgtName = %s" % tgtName) 
     return (srcName, tgtName)
 
 ############################################################################
