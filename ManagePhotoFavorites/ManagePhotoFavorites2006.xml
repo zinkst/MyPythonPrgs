@@ -6,9 +6,9 @@
 	</win32>
 	<linux2>
 		<!-- productionData -->
-		<relLinkTgtDirName value="/localdrives/D/Photos/2007/Favoriten/linksrel" />
+		<relLinkTgtDirName value="/localdrives/D/Photos/2006/Favoriten/linksrel" />
 		<srcDirName>/localdrives/D/persdata/Stefan/PhotosFavoriten</srcDirName> 
-		<workDirName>/localdrives/D/Photos/2007/</workDirName> 
+		<workDirName>/localdrives/backup/Photos/2006/</workDirName> 
 		<!-- testData 
 		<srcDirName>/localdrives/D/persdata/Stefan/myPrg/MyPythonPrgs/ManagePhotoFavorites/testData</srcDirName>
 		<workDirName>/localdrives/D/persdata/Stefan/myPrg/MyPythonPrgs/ManagePhotoFavorites/testData</workDirName>
@@ -22,7 +22,7 @@
 		<!-- testData
 		<linkPrefix value="../files" /> 
 		-->
-		<srcFilename value="2007Favoriten.txt" />
+		<srcFilename value="2006Favoriten.txt" />
 			
 	</generic>
 </config>

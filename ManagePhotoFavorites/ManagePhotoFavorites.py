@@ -114,7 +114,7 @@ def processFavoritesList_CreateRelativeLinks(srcName):
 def generateRelativeLink(curLine):
   logging.debug("curLine="+curLine)
   linkBaseName=os.path.basename(curLine)
-  tgtDirName=os.path.join(workDirName,"links")
+  tgtDirName=os.path.join(workDirName,"Favoriten/linksrel")
   linkName=os.path.join(tgtDirName,linkBaseName)
   logging.debug("linkName="+linkName)
   linkDestName=linkPrefix+curLine
@@ -126,7 +126,7 @@ def generateRelativeLink(curLine):
 
 ############################################################################
 def createFileListFromAbsoluteLinks(workDirName):
-  absLinkDirName=os.path.join(workDirName,"linksabs")
+  absLinkDirName=os.path.join(workDirName,"Favoriten/linksabs")
   listOfFiles=os.listdir(absLinkDirName)
   listOfAbsoluteLinkNames=[]
   listOfRelativeLinkNames=[]
@@ -135,47 +135,38 @@ def createFileListFromAbsoluteLinks(workDirName):
     curLinkTgtName = os.readlink(curAbsoluteFileName)
     logging.debug("curLinkTgtName = " + curLinkTgtName)
     listOfAbsoluteLinkNames.append(curLinkTgtName)
-    curRelLinkname=string.replace(curAbsoluteFileName, workDirName, "")
+    curRelLinkname=string.replace(curLinkTgtName, workDirName, "")
     logging.debug("curRelLinkname = "+ curRelLinkname)
     listOfRelativeLinkNames.append(curRelLinkname)
   return (listOfAbsoluteLinkNames,listOfRelativeLinkNames) 
 
+
 ############################################################################
-def writeAbsoluteFilenamesList(workDirName,listOfAbsoluteFileNames):
-    AbsoluteTgtListFileName=os.path.join(workDirName,"generatedAbsoluteLinks.txt")
-    try:
-        #outfile = codecs.open(tgtName, "wb","latin1","xmlcharrefreplace")
-        outfile = codecs.open(AbsoluteTgtListFileName, "wb", "utf8")
-        try:
-            for curLinkName in listOfAbsoluteFileNames:
-                #logging.info("curAddress = %s" % curAddress)
-                logging.info("curLinkName="+curLinkName)
-                outLine=curLinkName + '\r\n'
-                outfile.write(outLine)
-        finally:
-            outfile.close()
-    except IOError:
-        logging.info("error opening file %s" % tgtName) 
-    return 1
+def writeListToFile(tgtFileName, list):
+  try:
+      #outfile = codecs.open(tgtName, "wb","latin1","xmlcharrefreplace")
+      outfile = codecs.open(tgtFileName, "wb", "utf8")
+      try:
+          for curItem in list:
+              #logging.info("curAddress = %s" % curAddress)
+              logging.info("curItem="+curItem)
+              outLine=curItem + '\r\n'
+              outfile.write(outLine)
+      finally:
+          outfile.close()
+  except IOError:
+      logging.info("error opening file %s" % tgtFileName) 
+  return 1
 
 ############################################################################
 def writeRelativeFilenamesList(workDirName,listOfRelativeLinkNames):
-    RelativeLinkListFileName=os.path.join(workDirName,"generatedRelativeLinks.txt")
-    try:
-        #outfile = codecs.open(tgtName, "wb","latin1","xmlcharrefreplace")
-        outfile = codecs.open(RelativeLinkListFileName, "wb", "utf8")
-        try:
-            for curLinkName in listOfRelativeLinkNames:
-                #logging.info("curAddress = %s" % curAddress)
-                logging.info("curLinkName="+curLinkName)
-                outLine=curLinkName + '\r\n'
-                outfile.write(outLine)
-        finally:
-            outfile.close()
-    except IOError:
-        logging.info("error opening file %s" % tgtName) 
-    return 1
+    RelativeLinkListFileName=os.path.join(workDirName,"Favoriten/generatedRelativeLinks.txt")
+    writeListToFile(RelativeLinkListFileName,listOfRelativeLinkNames)
 
+############################################################################
+def writeAbsoluteFilenamesList(workDirName,listOfAbsoluteFileNames):
+    AbsoluteTgtListFileName=os.path.join(workDirName,"Favoriten/generatedAbsoluteLinks.txt")
+    writeListToFile(AbsoluteTgtListFileName,listOfAbsoluteFileNames)
 
 ############################################################################
 # main starts here
@@ -203,11 +194,11 @@ action=sys.argv[1]
 
 # select action
 print "action = " + action 
-if action == 1:
+if action == "1":
   (listOfAbsoluteLinkNames,listOfRelativeLinkNames) = createFileListFromAbsoluteLinks(workDirName)
   writeAbsoluteFilenamesList(workDirName, listOfAbsoluteLinkNames)
   writeRelativeFilenamesList(workDirName, listOfRelativeLinkNames)
-elif action == 2:
+elif action == "2":
   processFavoritesList_CreateRelativeLinks(srcName)
 
 
