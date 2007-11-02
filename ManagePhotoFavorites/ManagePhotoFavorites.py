@@ -98,7 +98,7 @@ def processFavoritesList_CreateRelativeLinks(srcName):
         try:
             #nextLine=unicode(fsock.readline())
             nextLine=fsock.readline()
-            nextLine.rstrip('\r\n')
+            nextLine=nextLine.rstrip('\r\n')
             logging.debug("curLine="+nextLine)
             while nextLine:
                 generateRelativeLink(nextLine)
