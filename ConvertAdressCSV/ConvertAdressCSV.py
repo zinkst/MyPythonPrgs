@@ -64,21 +64,26 @@ def readConfigFromXML(configFileName):
             for l2Node in l1Node.childNodes:
                 if l2Node.nodeName == "srcFilename":
                     srcFilename = l2Node.getAttribute("value").encode(defaultEncoding)
-                if l2Node.nodeName == "tgtFilename":
-                    tgtFilename = l2Node.getAttribute("value").encode(defaultEncoding)
+                if l2Node.nodeName == "tgtThunderbirdName":
+                    tgtThunderbirdName = l2Node.getAttribute("value").encode(defaultEncoding)
+                if l2Node.nodeName == "tgtGigasetName":
+                    tgtGigasetName = l2Node.getAttribute("value").encode(defaultEncoding)
                                  
              
     logging.debug("srcDirName = %s" % srcDirName) 
     logging.debug("tgtDirName = %s" % tgtDirName) 
     logging.debug("srcFilename = %s" % srcFilename) 
-    logging.debug("tgtFilename = %s" % tgtFilename) 
+    logging.debug("tgtThunderbirdName = %s" % tgtThunderbirdName) 
+    logging.debug("tgtGigasetName = %s" % tgtGigasetName) 
     
     srcName=os.path.join(srcDirName, srcFilename)
-    tgtName=os.path.join(tgtDirName, tgtFilename)
+    tgtThunderbirdAbsName=os.path.join(tgtDirName, tgtThunderbirdName)
+    tgtGigasetAbsName=os.path.join(tgtDirName, tgtGigasetName)
     
     logging.info("srcName = %s" % srcName) 
-    logging.info("tgtName = %s" % tgtName) 
-    return (srcName, tgtName)
+    logging.info("tgtName = %s" % tgtThunderbirdAbsName) 
+    logging.info("tgtName = %s" % tgtGigasetAbsName) 
+    return (srcName, tgtThunderbirdAbsName,tgtGigasetAbsName)
 
 ############################################################################
 def printDictionaryDynamic(inDict):
@@ -128,8 +133,9 @@ def handleSrcFileLine(curLine):
     elif curLine.startswith('\'"Vorname'):
       logging.debug("do not process headerline")
     else: 
-      #(Vorname, Nachname, Strasse, PLZ, Ort, Staat, Telefon, mobil, Telefongesch, Fax,Geburtstag, EMail1, EMail2, Nickname, Webseite,Kommentar)
-      rest = getNextLineEntry(curLine,"Vorname")
+      #(Telefonbucheintrag,Vorname, Nachname, Strasse, PLZ, Ort, Staat, Telefon, mobil, Telefongesch, Fax,Geburtstag, EMail1, EMail2, Nickname, Webseite,Kommentar)
+      rest = getNextLineEntry(curLine,"Telefonbucheintrag")
+      rest = getNextLineEntry(rest,"Vorname")
       rest = getNextLineEntry(rest,"Nachname")
       rest = getNextLineEntry(rest,"Strasse")
       rest = getNextLineEntry(rest,"PLZ")
@@ -231,9 +237,9 @@ def formatDictAsThunderbirdLine(inDict):
     return line
 
 ###########################################################################
-def writeOutput(tgtName):
+def writeThunderbirdOutput(tgtThunderbirdAbsName):
     try:
-        outfile = codecs.open(tgtName, "wb","latin1","xmlcharrefreplace")
+        outfile = codecs.open(tgtThunderbirdName, "wb","latin1","xmlcharrefreplace")
         #outfile = codecs.open(tgtName, "wb", "utf8")
         try:
             for curAddressDict in addressLines:
@@ -245,33 +251,82 @@ def writeOutput(tgtName):
         finally:
             outfile.close()
     except IOError:
-        logging.info("error opening file %s" % tgtName) 
+        logging.info("error opening file %s" % tgtThunderbirdName) 
     return 1
     
 ###########################################################################
-def testsnippets():
-  testString ='"test","2test2",,,'
-  regexPattern = re.compile(r'\A".*"')
-  matchObject = regexPattern.match(testString)
-  if matchObject:
-    print(matchObject.group())
-    print(matchObject.span())
-  else:
-    print("no match found")  
+def writeGigasetOutput(tgtGigasetAbsName):
+#BEGIN:VCARD
+#VERSION:2.1
+#N:Röhm;Martin
+#TEL;HOME:373039
+#TEL;WORK:07051168135
+#TEL;CELL:0162811892
+#EMAIL:martin.roehm@gmx.net
+#END:VCARD  
   
-  listOfmatches = regexPattern.findall(testString)
-  print listOfmatches
-  
-  endindex = testString.find('test')
-  result = testString[0:endindex+2]
-  print (endindex)
-  print ("result="+result)
+    try:
+        #outfile = codecs.open(tgtGigasetAbsName, "wb","latin1","xmlcharrefreplace")
+        outfile = codecs.open(tgtGigasetAbsName, "wb", "utf8")
+        try:
+            for curAddressDict in addressLines:
+                createEntry=curAddressDict["Telefonbucheintrag"]
+                if createEntry == 'j':
+                  outfile.write('\r\n')
+                  outfile.write('BEGIN:VCARD\r\n')
+                  outfile.write('VERSION:2.1\r\n')
+                  nameLine='N:'+curAddressDict["Nachname"] + ";" + curAddressDict["Vorname"] + '\r\n'
+                  logging.info("nameLine="+nameLine)
+                  outfile.write(nameLine)
+                  telHome=formatTelefonForGigaset(curAddressDict["Telefon"])
+                  if len(telHome) != 0:
+                    telHomeLine='TEL;HOME:'+telHome + '\r\n'
+                    logging.info("telHomeLine="+telHomeLine)
+                    outfile.write(telHomeLine)
+                  telWork=formatTelefonForGigaset(curAddressDict["Telefongesch"])
+                  if len(telWork) != 0:
+                    telWorkLine='TEL;WORK:'+telWork + '\r\n'
+                    logging.info("telWorkLine="+telWorkLine)
+                    outfile.write(telWorkLine)
+                  telCell=formatTelefonForGigaset(curAddressDict["mobil"])
+                  if len(telCell) != 0:
+                    telCellLine='TEL;CELL:'+telCell + '\r\n'
+                    logging.info("telCellLine="+telCellLine)
+                    outfile.write(telCellLine)
+                  outfile.write('END:VCARD\r\n')
+            outfile.write(preconfiguredGigasetNumbers())  
+        finally:
+            outfile.close()
+    except IOError:
+        logging.info("error opening file %s" % tgtGigasetAbsName) 
+    return 1
 
-  count = testString.count('test')
-  print (count)
-  
-  (left,sep,right)=testString.partition('\A".*"')
-  print("sep="+sep)      
+###########################################################################
+def formatTelefonForGigaset(srcPhoneNumber):
+    tgtPhoneNumber = srcPhoneNumber.replace('-','')
+    tgtPhoneNumber = tgtPhoneNumber.replace('07054','')
+    return tgtPhoneNumber
+
+def preconfiguredGigasetNumbers():
+    val= '\r\n'
+    val= val+'BEGIN:VCARD\r\n'
+    val= val+'VERSION:2.1\r\n'
+    val= val+'N: Gigaset.net;\r\n'
+    val= val+'TEL;HOME:1188#9\r\n'
+    val= val+'END:VCARD\r\n'
+    val= val+'\r\n'
+    val= val+'BEGIN:VCARD\r\n'
+    val= val+'VERSION:2.1\r\n'
+    val= val+'N: kT Bran.buch;\r\n'
+    val= val+'TEL;HOME:2#91\r\n'
+    val= val+'END:VCARD\r\n'
+    val= val+'\r\n'
+    val= val+'BEGIN:VCARD\r\n'
+    val= val+'VERSION:2.1\r\n'
+    val= val+'N: kT Tel.buch;\r\n'
+    val= val+'TEL;HOME:1#91\r\n'
+    val= val+'END:VCARD\r\n'
+    return val
 
 ############################################################################
 # main starts here
@@ -300,6 +355,31 @@ inSeparator = ','
 inEnclosingChar='"'
 addressLines = []
 curDict = {}
-(srcName, tgtName) = readConfigFromXML(configFileName)
+(srcName, tgtThunderbirdAbsName,tgtGigasetAbsName) = readConfigFromXML(configFileName)
 processSrcFile(srcName)
-writeOutput(tgtName)
+#writeThunderbirdOutput(tgtThunderbirdAbsName)
+writeGigasetOutput(tgtGigasetAbsName)
+###########################################################################
+def testsnippets():
+  testString ='"test","2test2",,,'
+  regexPattern = re.compile(r'\A".*"')
+  matchObject = regexPattern.match(testString)
+  if matchObject:
+    print(matchObject.group())
+    print(matchObject.span())
+  else:
+    print("no match found")  
+  
+  listOfmatches = regexPattern.findall(testString)
+  print listOfmatches
+  
+  endindex = testString.find('test')
+  result = testString[0:endindex+2]
+  print (endindex)
+  print ("result="+result)
+
+  count = testString.count('test')
+  print (count)
+  
+  (left,sep,right)=testString.partition('\A".*"')
+  print("sep="+sep)      

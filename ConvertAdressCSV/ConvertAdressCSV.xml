@@ -15,7 +15,8 @@
 		<tgtFilename value="Thunderbird_withComma.csv" />
 -->
  		<srcFilename value="Adresstabelle.csv" />
-		<tgtFilename value="Thunderbird.csv" />
+		<tgtThunderbirdName value="Thunderbird.csv" />
+		<tgtGigasetName value="Gigaset.vcf" />
 
 	</generic>
 </config>
