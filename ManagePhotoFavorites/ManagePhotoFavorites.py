@@ -12,7 +12,7 @@ where option is one of :
    
 2: as input take a file with a list of relative links and create those links in <workDirName>/linksrel   
 
-3: copy files contained in linksrel to folder files as new files ...
+3: (not implemented, can be done with a cp option) copy files contained in linksrel to folder files as new files ...
 
 """
 
