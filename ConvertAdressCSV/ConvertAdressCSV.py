@@ -239,7 +239,7 @@ def formatDictAsThunderbirdLine(inDict):
 ###########################################################################
 def writeThunderbirdOutput(tgtThunderbirdAbsName):
     try:
-        outfile = codecs.open(tgtThunderbirdName, "wb","latin1","xmlcharrefreplace")
+        outfile = codecs.open(tgtThunderbirdAbsName, "wb","latin1","xmlcharrefreplace")
         #outfile = codecs.open(tgtName, "wb", "utf8")
         try:
             for curAddressDict in addressLines:
@@ -357,8 +357,9 @@ addressLines = []
 curDict = {}
 (srcName, tgtThunderbirdAbsName,tgtGigasetAbsName) = readConfigFromXML(configFileName)
 processSrcFile(srcName)
-#writeThunderbirdOutput(tgtThunderbirdAbsName)
+writeThunderbirdOutput(tgtThunderbirdAbsName)
 writeGigasetOutput(tgtGigasetAbsName)
+
 ###########################################################################
 def testsnippets():
   testString ='"test","2test2",,,'
