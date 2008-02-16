@@ -17,6 +17,7 @@
  		<srcFilename value="Adresstabelle.csv" />
 		<tgtThunderbirdName value="Thunderbird.csv" />
 		<tgtGigasetName value="Gigaset.vcf" />
+		<tgtTSinusName value="TSinus.vcf" />
 
 	</generic>
 </config>

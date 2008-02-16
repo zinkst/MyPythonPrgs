@@ -68,6 +68,8 @@ def readConfigFromXML(configFileName):
                     tgtThunderbirdName = l2Node.getAttribute("value").encode(defaultEncoding)
                 if l2Node.nodeName == "tgtGigasetName":
                     tgtGigasetName = l2Node.getAttribute("value").encode(defaultEncoding)
+                if l2Node.nodeName == "tgtTSinusName":
+                    tgtTSinusName = l2Node.getAttribute("value").encode(defaultEncoding)
                                  
              
     logging.debug("srcDirName = %s" % srcDirName) 
@@ -75,15 +77,18 @@ def readConfigFromXML(configFileName):
     logging.debug("srcFilename = %s" % srcFilename) 
     logging.debug("tgtThunderbirdName = %s" % tgtThunderbirdName) 
     logging.debug("tgtGigasetName = %s" % tgtGigasetName) 
+    logging.debug("tgtTSinusName = %s" % tgtTSinusName) 
     
     srcName=os.path.join(srcDirName, srcFilename)
     tgtThunderbirdAbsName=os.path.join(tgtDirName, tgtThunderbirdName)
     tgtGigasetAbsName=os.path.join(tgtDirName, tgtGigasetName)
+    tgtTSinusAbsName=os.path.join(tgtDirName, tgtTSinusName)
     
     logging.info("srcName = %s" % srcName) 
-    logging.info("tgtName = %s" % tgtThunderbirdAbsName) 
-    logging.info("tgtName = %s" % tgtGigasetAbsName) 
-    return (srcName, tgtThunderbirdAbsName,tgtGigasetAbsName)
+    logging.info("tgtThunderbirdAbsName = %s" % tgtThunderbirdAbsName) 
+    logging.info("tgtGigasetAbsName = %s" % tgtGigasetAbsName) 
+    logging.info("tgtTSinusAbsName = %s" % tgtTSinusAbsName) 
+    return (srcName, tgtThunderbirdAbsName,tgtGigasetAbsName,tgtTSinusAbsName)
 
 ############################################################################
 def printDictionaryDynamic(inDict):
@@ -184,7 +189,7 @@ def processSrcFile(srcName):
         try:
             #nextLine=unicode(fsock.readline())
             nextLine=fsock.readline()
-            curLine=nextLine.rstrip('\r\n')
+            curLine=nextLine.rstrip(lineEnd)
             curLine="'"+nextLine+"'"
             while nextLine:
                 #logging.debug("curLine = %s" % curLine)
@@ -193,7 +198,7 @@ def processSrcFile(srcName):
                 handleSrcFileLine(curLine)
                 curDict.clear() 
                 nextLine=fsock.readline()
-                curLine=nextLine.rstrip('\r\n')
+                curLine=nextLine.rstrip(lineEnd)
                 curLine="'"+curLine+"'"
                 #logging.debug("curline="+curLine)
         finally:
@@ -246,7 +251,7 @@ def writeThunderbirdOutput(tgtThunderbirdAbsName):
                 #logging.info("curAddress = %s" % curAddress)
                 outline=formatDictAsThunderbirdLine(curAddressDict)
                 logging.info("outline="+outline)
-                outLine=outline + '\r\n'
+                outLine=outline + lineEnd
                 outfile.write(outLine)
         finally:
             outfile.close()
@@ -264,42 +269,42 @@ def writeGigasetOutput(tgtGigasetAbsName):
 #TEL;CELL:0162811892
 #EMAIL:martin.roehm@gmx.net
 #END:VCARD  
-  
+  try:
+    # nested try necessary for finally in Python 2.4
     try:
-        #outfile = codecs.open(tgtGigasetAbsName, "wb","latin1","xmlcharrefreplace")
-        outfile = codecs.open(tgtGigasetAbsName, "wb", "utf8")
-        try:
-            for curAddressDict in addressLines:
-                createEntry=curAddressDict["Telefonbucheintrag"]
-                if createEntry == 'j':
-                  outfile.write('\r\n')
-                  outfile.write('BEGIN:VCARD\r\n')
-                  outfile.write('VERSION:2.1\r\n')
-                  nameLine='N:'+curAddressDict["Nachname"] + ";" + curAddressDict["Vorname"] + '\r\n'
-                  logging.info("nameLine="+nameLine)
-                  outfile.write(nameLine)
-                  telHome=formatTelefonForGigaset(curAddressDict["Telefon"])
-                  if len(telHome) != 0:
-                    telHomeLine='TEL;HOME:'+telHome + '\r\n'
-                    logging.info("telHomeLine="+telHomeLine)
-                    outfile.write(telHomeLine)
-                  telWork=formatTelefonForGigaset(curAddressDict["Telefongesch"])
-                  if len(telWork) != 0:
-                    telWorkLine='TEL;WORK:'+telWork + '\r\n'
-                    logging.info("telWorkLine="+telWorkLine)
-                    outfile.write(telWorkLine)
-                  telCell=formatTelefonForGigaset(curAddressDict["mobil"])
-                  if len(telCell) != 0:
-                    telCellLine='TEL;CELL:'+telCell + '\r\n'
-                    logging.info("telCellLine="+telCellLine)
-                    outfile.write(telCellLine)
-                  outfile.write('END:VCARD\r\n')
-            outfile.write(preconfiguredGigasetNumbers())  
-        finally:
-            outfile.close()
+      #outfile = codecs.open(tgtGigasetAbsName, "wb","latin1","xmlcharrefreplace")
+      outfile = codecs.open(tgtGigasetAbsName, "wb", "utf8")
+      for curAddressDict in addressLines:
+        createEntry=curAddressDict["Telefonbucheintrag"]
+        if createEntry == 'j':
+          outfile.write(lineEnd)
+          outfile.write('BEGIN:VCARD'+lineEnd)
+          outfile.write('VERSION:2.1'+lineEnd)
+          nameLine='N:'+curAddressDict["Nachname"] + ";" + curAddressDict["Vorname"] + lineEnd
+          logging.info("nameLine="+nameLine)
+          outfile.write(nameLine)
+          telHome=formatTelefonForGigaset(curAddressDict["Telefon"])
+          if len(telHome) != 0:
+            telHomeLine='TEL;HOME:'+telHome + lineEnd
+            logging.info("telHomeLine="+telHomeLine)
+            outfile.write(telHomeLine)
+          telWork=formatTelefonForGigaset(curAddressDict["Telefongesch"])
+          if len(telWork) != 0:
+            telWorkLine='TEL;WORK:'+telWork + lineEnd
+            logging.info("telWorkLine="+telWorkLine)
+            outfile.write(telWorkLine)
+          telCell=formatTelefonForGigaset(curAddressDict["mobil"])
+          if len(telCell) != 0:
+            telCellLine='TEL;CELL:'+telCell + lineEnd
+            logging.info("telCellLine="+telCellLine)
+            outfile.write(telCellLine)
+          outfile.write('END:VCARD'+lineEnd)
+      outfile.write(preconfiguredGigasetNumbers())  
     except IOError:
-        logging.info("error opening file %s" % tgtGigasetAbsName) 
-    return 1
+      logging.info("error opening file %s" % tgtGigasetAbsName) 
+  finally:
+    outfile.close()
+  return 1
 
 ###########################################################################
 def formatTelefonForGigaset(srcPhoneNumber):
@@ -308,25 +313,80 @@ def formatTelefonForGigaset(srcPhoneNumber):
     return tgtPhoneNumber
 
 def preconfiguredGigasetNumbers():
-    val= '\r\n'
-    val= val+'BEGIN:VCARD\r\n'
-    val= val+'VERSION:2.1\r\n'
-    val= val+'N: Gigaset.net;\r\n'
-    val= val+'TEL;HOME:1188#9\r\n'
-    val= val+'END:VCARD\r\n'
-    val= val+'\r\n'
-    val= val+'BEGIN:VCARD\r\n'
-    val= val+'VERSION:2.1\r\n'
-    val= val+'N: kT Bran.buch;\r\n'
-    val= val+'TEL;HOME:2#91\r\n'
-    val= val+'END:VCARD\r\n'
-    val= val+'\r\n'
-    val= val+'BEGIN:VCARD\r\n'
-    val= val+'VERSION:2.1\r\n'
-    val= val+'N: kT Tel.buch;\r\n'
-    val= val+'TEL;HOME:1#91\r\n'
-    val= val+'END:VCARD\r\n'
+    val= lineEnd
+    val= val+'BEGIN:VCARD'+lineEnd
+    val= val+'VERSION:2.1'+lineEnd
+    val= val+'N: Gigaset.net;'+lineEnd
+    val= val+'TEL;HOME:1188#9'+lineEnd
+    val= val+'END:VCARD'+lineEnd
+    val= val+lineEnd
+    val= val+'BEGIN:VCARD'+lineEnd
+    val= val+'VERSION:2.1'+lineEnd
+    val= val+'N: kT Bran.buch;'+lineEnd
+    val= val+'TEL;HOME:2#91'+lineEnd
+    val= val+'END:VCARD'+lineEnd
+    val= val+lineEnd
+    val= val+'BEGIN:VCARD'+lineEnd
+    val= val+'VERSION:2.1'+lineEnd
+    val= val+'N: kT Tel.buch;'+lineEnd
+    val= val+'TEL;HOME:1#91'+lineEnd
+    val= val+'END:VCARD'+lineEnd
     return val
+
+
+###########################################################################
+def writeTSinusOutput(tgtTSinusAbsName):
+  # nested try necessary for finally in Python 2.4
+  try:
+    try:
+      outfile = codecs.open(tgtTSinusAbsName, "wb","latin-1","xmlcharrefreplace")
+      #outfile = codecs.open(tgtTSinusAbsName, "wb", "utf8")
+      for curAddressDict in addressLines:
+        createEntry=curAddressDict["Telefonbucheintrag"]
+        if createEntry == 'j':
+          nameMax10=curAddressDict["Nachname"]+ "," + curAddressDict["Vorname"]
+          if len(nameMax10)>=10:
+            nameMax10=nameMax10[0:11]#.encode('latin1')
+          logging.info("nameMax10="+nameMax10)
+          telHome=formatTelefonForGigaset(curAddressDict["Telefon"])
+          if len(telHome) != 0:
+            outfile.write(lineEnd)
+            outfile.write('BEGIN:VCARD'+lineEnd)
+            outfile.write('VERSION:2.1'+lineEnd)
+            outfile.write('N:'+nameMax10+' hom'+lineEnd)
+            telHomeLine='TEL;HOME:'+telHome + lineEnd
+            logging.info("telHomeLine="+telHomeLine)
+            outfile.write(telHomeLine)
+            outfile.write('END:VCARD'+lineEnd)
+            
+          telWork=formatTelefonForGigaset(curAddressDict["Telefongesch"])
+          if len(telWork) != 0:
+            outfile.write(lineEnd)
+            outfile.write('BEGIN:VCARD'+lineEnd)
+            outfile.write('VERSION:2.1'+lineEnd)
+            outfile.write('N:'+nameMax10+' wrk'+lineEnd)
+            telWorkLine='TEL;HOME:'+telWork + lineEnd
+            logging.info("telWorkLine="+telWorkLine)
+            outfile.write(telWorkLine)
+            outfile.write('END:VCARD'+lineEnd)
+  
+          telCell=formatTelefonForGigaset(curAddressDict["mobil"])
+          if len(telCell) != 0:
+            outfile.write(lineEnd)
+            outfile.write('BEGIN:VCARD'+lineEnd)
+            outfile.write('VERSION:2.1'+lineEnd)
+            outfile.write('N:'+nameMax10+' hdy'+lineEnd)
+            telCellLine='TEL;HOME:'+telCell + lineEnd
+            logging.info("telCellLine="+telCellLine)
+            outfile.write(telCellLine)
+            outfile.write('END:VCARD'+lineEnd)
+    except IOError:
+      logging.info("error opening file %s" % tgtTSinusAbsName) 
+  finally:
+    outfile.close()
+  return 1
+
+
 
 ############################################################################
 # main starts here
@@ -339,7 +399,7 @@ if sys.platform == "win32":
   defaultEncoding="UTF-8"
 else:
   defaultEncoding="UTF-8"
-
+lineEnd='\r\n'
 #testsnippets()
 
 if len(sys.argv) == 1 :
@@ -355,10 +415,12 @@ inSeparator = ','
 inEnclosingChar='"'
 addressLines = []
 curDict = {}
-(srcName, tgtThunderbirdAbsName,tgtGigasetAbsName) = readConfigFromXML(configFileName)
+(srcName, tgtThunderbirdAbsName,tgtGigasetAbsName,tgtTSinusAbsName) = readConfigFromXML(configFileName)
 processSrcFile(srcName)
-writeThunderbirdOutput(tgtThunderbirdAbsName)
-writeGigasetOutput(tgtGigasetAbsName)
+#writeThunderbirdOutput(tgtThunderbirdAbsName)
+#writeGigasetOutput(tgtGigasetAbsName)
+writeTSinusOutput(tgtTSinusAbsName)
+
 
 ###########################################################################
 def testsnippets():

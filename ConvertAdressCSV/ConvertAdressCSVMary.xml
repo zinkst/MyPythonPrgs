@@ -7,7 +7,8 @@
 	<linux2>
 		<!-- <srcDirName value="/localdrives/F/mp3car/010MP3CAR/06_Björk_Telegram" /> -->
 		<srcDirName>/localdrives/D/persdata/Marion/Privat</srcDirName>
-		<tgtDirName value="/localdrives/D/persdata/Marion/Privat" />
+		<tgtDirName value="/localdrives/D/persdata/Stefan/OpenOffice/Adressdatei" />
+<!--  	<tgtDirName value="/localdrives/D/persdata/Marion/Privat" /> -->
 	</linux2>
 	<generic>
 <!--
@@ -17,6 +18,7 @@
  		<srcFilename value="ADRMARY1.csv" />
 		<tgtThunderbirdName value="ThunderbirdMary.csv" />
 		<tgtGigasetName value="GigasetMary.vcf" />
+		<tgtTSinusName value="TSinusMary.vcf" />
 
 	</generic>
 </config>
