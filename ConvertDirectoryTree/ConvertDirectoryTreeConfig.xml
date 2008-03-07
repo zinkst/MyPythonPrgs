@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<config>
+	<win32>
+		<!-- <srcDirName value="F:\mp3car\010MP3CAR\06_Björk_Telegram" /> -->
+		<srcDirName>E:\mp3car\010MP3CAR\</srcDirName>
+		<tgtDirName value="e:\mp3car\010MP3STICK" />
+		<mp3Encoder value="C:\Programs\Multimedia\lame\lame.exe" />
+	</win32>
+	<linux2>
+		<!-- testdata -->
+		<srcDirName>/home/zinks/persdata/Stefan/myPrg/MyPythonPrgs/ConvertDirectoryTree/testdata/src</srcDirName>
+		<tgtDirName value="/home/zinks/persdata/Stefan/myPrg/MyPythonPrgs/ConvertDirectoryTree/testdata/tgt" />
+		<!-- 
+		<srcDirName>/home/zinks/workspaces/private_ws/Perl-Schulung-AU220D0DE/MusterLoesungen</srcDirName>
+		<tgtDirName value="/home/zinks/workspaces/private_ws/Perl-Schulung-AU220D0DE/MusterLoesungen_utf8" />
+		-->
+		<toolName value="iconv" />
+	</linux2>
+	<generic>
+		<toolOptions value="-f iso8859-1 -t utf-8" />
+		<fileFilter value="*.p*" />
+	</generic>
+</config>
