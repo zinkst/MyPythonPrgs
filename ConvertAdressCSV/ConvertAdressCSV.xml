@@ -15,9 +15,9 @@
 		<tgtFilename value="Thunderbird_withComma.csv" />
 -->
  		<srcFilename value="Adresstabelle.csv" />
-		<tgtThunderbirdName value="Thunderbird.csv" />
-		<tgtGigasetName value="Gigaset.vcf" />
-		<tgtTSinusName value="TSinus.vcf" />
+		<tgtThunderbirdName value="ThunderbirdStefan.csv" />
+		<tgtGigasetName value="GigasetStefan.vcf" />
+		<tgtTSinusName value="TSinusStefan.vcf" />
 
 	</generic>
 </config>
