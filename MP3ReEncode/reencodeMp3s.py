@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# -*- coding: iso-8859-1 -*-
+# -*- coding: utf-8 -*-
 description = """This program searches a given Source Directory for mp3 files and performs 
 reencoding of the mp3's. The reencoded files are stored under target directory
 preserving the directory structure. ID3 tag information (album,songname,artist,year
@@ -199,7 +199,7 @@ print ("successfully transfered %s " % srcDirName)
 
 #files = os.listdir (dirname)
 
-#files = glob.glob1("F:\\mp3car\\010MP3CAR\\06_Björk_Telegram","*.mp3")
+#files = glob.glob1("F:\\mp3car\\010MP3CAR\\06_BjÃ¶rk_Telegram","*.mp3")
 #for name in files:
 #   print name
  #winxmldom= minidom.parseString( winTagXml[0].toxml().encode("utf-8"))
