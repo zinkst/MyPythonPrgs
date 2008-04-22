@@ -417,8 +417,8 @@ addressLines = []
 curDict = {}
 (srcName, tgtThunderbirdAbsName,tgtGigasetAbsName,tgtTSinusAbsName) = readConfigFromXML(configFileName)
 processSrcFile(srcName)
-#writeThunderbirdOutput(tgtThunderbirdAbsName)
-#writeGigasetOutput(tgtGigasetAbsName)
+writeThunderbirdOutput(tgtThunderbirdAbsName)
+writeGigasetOutput(tgtGigasetAbsName)
 writeTSinusOutput(tgtTSinusAbsName)
 
 
