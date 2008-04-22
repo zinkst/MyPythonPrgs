@@ -62,21 +62,30 @@ def readConfigFromXML(configFileName):
             for l2Node in l1Node.childNodes:
                 if l2Node.nodeName == "srcDirName":
                     """ Zugriff auf den Wert des tags """
-                    srcDirName=l2Node.firstChild.nodeValue.encode(defaultEncoding)
+                    #srcDirName=l2Node.firstChild.nodeValue.encode(defaultEncoding)
+                    srcDirName=l2Node.firstChild.nodeValue
                 if l2Node.nodeName == "workDirName":
                     """ Zugriff auf den Wert des tags """
-                    workDirName = l2Node.firstChild.nodeValue.encode(defaultEncoding)
+                    #workDirName = l2Node.firstChild.nodeValue.encode(defaultEncoding)
+                    workDirName = l2Node.firstChild.nodeValue
                     """ Zugriff auf ein Attribut des tags """
                     #workDirName = l2Node.getAttribute("value").encode(defaultEncoding)
                   
         elif l1Node.nodeName == "generic":
             for l2Node in l1Node.childNodes:
                 if l2Node.nodeName == "srcFilename":
-                    srcFilename = l2Node.getAttribute("value").encode(defaultEncoding)
+                    #srcFilename = l2Node.getAttribute("value").encode(defaultEncoding)
+                    srcFilename = l2Node.getAttribute("value")
                 if l2Node.nodeName == "linkPrefix":
-                    linkPrefix = l2Node.getAttribute("value").encode(defaultEncoding)
+#                    linkPrefix = l2Node.getAttribute("value").encode(defaultEncoding)
+                    linkPrefix = l2Node.getAttribute("value")
                                  
              
+    srcDirName=srcDirName.encode(defaultEncoding)
+    workDirName=workDirName.encode(defaultEncoding)
+    srcFilename=srcFilename.encode(defaultEncoding)
+    linkPrefix=linkPrefix.encode(defaultEncoding)
+    
     logging.debug("srcDirName = %s" % srcDirName) 
     logging.debug("srcFilename = %s" % srcFilename) 
     #logging.debug("tgtDirName = %s" % tgtDirName) 
@@ -120,7 +129,7 @@ def generateRelativeLink(curLine):
   linkDestName=linkPrefix+curLine
   logging.debug("linkDestName="+linkDestName)
   linkStatement="ln -sf "+linkDestName+" "+linkName
-  print(linkStatement)
+  print(linkStatement.encode(defaultEncoding))
   #os.system(linkStatement)
   os.symlink(linkDestName, linkName)
 
@@ -132,10 +141,13 @@ def createFileListFromAbsoluteLinks(workDirName):
   listOfRelativeLinkNames=[]
   for curFile in listOfFiles:
     curAbsoluteFileName = os.path.join(absLinkDirName,curFile)
+    #curAbsoluteFileName=curAbsoluteFileName.encode(defaultEncoding)
     curLinkTgtName = os.readlink(curAbsoluteFileName)
+    curLinkTgtName = curLinkTgtName.decode(defaultEncoding)
     logging.debug("curLinkTgtName = " + curLinkTgtName)
     listOfAbsoluteLinkNames.append(curLinkTgtName)
     curRelLinkname=string.replace(curLinkTgtName, workDirName, "")
+    #curRelLinkname = curRelLinkname.decode(defaultEncoding)
     logging.debug("curRelLinkname = "+ curRelLinkname)
     listOfRelativeLinkNames.append(curRelLinkname)
   return (listOfAbsoluteLinkNames,listOfRelativeLinkNames) 
