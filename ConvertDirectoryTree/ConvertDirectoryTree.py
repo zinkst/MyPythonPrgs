@@ -1,12 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-description = """This program searches a given Source Directory for mp3 files and performs 
-reencoding of the mp3's. The reencoded files are stored under target directory
-preserving the directory structure. ID3 tag information (album,songname,artist,year
-genre) are also preserved.
-It uses lame for reencoding. Configuration options must be set in an xml file.
-In the xml file srcDir, tgtDir, path to Lame executable, and lame encoding options must be specified
-For id3 scanning the module pytagger is used. see: http://www.liquidx.net/pytagger/
+description = """This program searches a given Source Directory for files and performs 
+a given operation (encode from asciii to utf8). The reencoded files are stored under target directory
+preserving the directory structure. 
 """
 
 import os
