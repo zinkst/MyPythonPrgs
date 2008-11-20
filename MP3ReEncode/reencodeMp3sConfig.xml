@@ -8,8 +8,8 @@
 	</win32>
 	<linux2>
 		<!-- <srcDirName value="/localdrives/E/mp3/car/010MP3CAR/06_Coldplay_X&Y" /> -->
-		<srcDirName>/localdrives/E/mp3/car/011MP3CAR</srcDirName>
-		<tgtDirName value="/localdrives/E/mp3/car/011MP3STICK" />
+		<srcDirName>/home/zinks/Music/car/011MP3CAR/01_Metallica_Death magnetic</srcDirName>
+		<tgtDirName value="/home/zinks/Music/stick" />
 		<mp3Encoder value="lame" />
 	</linux2>
 	<generic>

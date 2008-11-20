@@ -83,7 +83,7 @@ def processMP3fileDIC(srcCompleteFileName,tgtCompleteFileName):
         mp3info_dic["track"] = mp3_tag1.track
     if mp3_tag1.year != None and mp3_tag1.year != -1:
         mp3info_dic["year"] = mp3_tag1.year
-    if mp3_tag1.genre != None and mp3_tag1.genre != -1:
+    if mp3_tag1.genre != None and mp3_tag1.genre >= -1:
         mp3info_dic["genre"] = mp3_tag1.genre
     attributeDIC = {"artist": "ta" , "songname" : "tt" , "album" : "tl" , "track" : "tn" , "year" : "ty" , "genre" : "tg" }
     

@@ -16,8 +16,8 @@
 	</linux2>
 	<generic>
  		<!-- productionData -->
-		<srcFileName value="Schweden2.lst" />
-		<tgtFileName value="Schweden3.lst" />
+		<srcFileName value="linksabs.txt" />
+		<tgtFileName value="2008LinksAbs.txt" />
 		<!-- testData
 		<srcFilename value="2008Favoriten.txt" />
 		<tgtFilename value="2008Favoriten.txt" />

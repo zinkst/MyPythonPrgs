@@ -111,7 +111,15 @@ def processFile(inputParams):
             nextLine=nextLine.rstrip('\r\n')
             logging.debug("curLine="+nextLine)
             while nextLine:
-                outfile.write(nextLine + ' ')
+                ## put your line handling code here ###
+                arrowIndex = nextLine.find('->')
+                outline = nextLine[arrowIndex+2:]  
+                
+                outline = 'ln -sf ' + outline
+                logging.debug("outline="+outline)
+                  
+                outfile.write(outline + '\r\n')
+                ###################
                 nextLine=fsock.readline()
                 nextLine=nextLine.rstrip('\r\n')
         finally:
