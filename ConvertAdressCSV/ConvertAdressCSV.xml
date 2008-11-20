@@ -6,8 +6,8 @@
 	</win32>
 	<linux2>
 		<!-- <srcDirName value="/localdrives/F/mp3car/010MP3CAR/06_Björk_Telegram" /> -->
-		<srcDirName>/localdrives/D/persdata/Stefan/OpenOffice/Adressdatei</srcDirName>
-		<tgtDirName value="/localdrives/D/persdata/Stefan/OpenOffice/Adressdatei" />
+		<srcDirName>/home/zinks/persdata/Stefan/OpenOffice/Adressdatei</srcDirName>
+		<tgtDirName value="/home/zinks/persdata/Stefan/OpenOffice/Adressdatei" />
 	</linux2>
 	<generic>
 <!--
@@ -18,6 +18,7 @@
 		<tgtThunderbirdName value="ThunderbirdStefan.csv" />
 		<tgtGigasetName value="GigasetStefan.vcf" />
 		<tgtTSinusName value="TSinusStefan.vcf" />
+		<tgtGMXName value="GMXStefan.csv" />
 
 	</generic>
 </config>

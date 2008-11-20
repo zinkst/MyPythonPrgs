@@ -70,6 +70,8 @@ def readConfigFromXML(configFileName):
                     tgtGigasetName = l2Node.getAttribute("value").encode(defaultEncoding)
                 if l2Node.nodeName == "tgtTSinusName":
                     tgtTSinusName = l2Node.getAttribute("value").encode(defaultEncoding)
+                if l2Node.nodeName == "tgtGMXName":
+                    tgtGMXName = l2Node.getAttribute("value").encode(defaultEncoding)
                                  
              
     logging.debug("srcDirName = %s" % srcDirName) 
@@ -78,17 +80,20 @@ def readConfigFromXML(configFileName):
     logging.debug("tgtThunderbirdName = %s" % tgtThunderbirdName) 
     logging.debug("tgtGigasetName = %s" % tgtGigasetName) 
     logging.debug("tgtTSinusName = %s" % tgtTSinusName) 
+    logging.debug("tgtGMXName = %s" % tgtGMXName) 
     
     srcName=os.path.join(srcDirName, srcFilename)
     tgtThunderbirdAbsName=os.path.join(tgtDirName, tgtThunderbirdName)
     tgtGigasetAbsName=os.path.join(tgtDirName, tgtGigasetName)
     tgtTSinusAbsName=os.path.join(tgtDirName, tgtTSinusName)
+    tgtGMXAbsName=os.path.join(tgtDirName, tgtGMXName)
     
     logging.info("srcName = %s" % srcName) 
     logging.info("tgtThunderbirdAbsName = %s" % tgtThunderbirdAbsName) 
     logging.info("tgtGigasetAbsName = %s" % tgtGigasetAbsName) 
     logging.info("tgtTSinusAbsName = %s" % tgtTSinusAbsName) 
-    return (srcName, tgtThunderbirdAbsName,tgtGigasetAbsName,tgtTSinusAbsName)
+    logging.info("tgtGMXAbsName = %s" % tgtGMXAbsName) 
+    return (srcName, tgtThunderbirdAbsName,tgtGigasetAbsName,tgtTSinusAbsName,tgtGMXAbsName)
 
 ############################################################################
 def printDictionaryDynamic(inDict):
@@ -387,6 +392,35 @@ def writeTSinusOutput(tgtTSinusAbsName):
   return 1
 
 
+###########################################################################
+def writeGMXCSVOutput(tgtGMXAbsName):
+  gmxSeparator = ','
+  gmxEnclosingChar='"'
+  outSep = gmxEnclosingChar+gmxSeparator+gmxEnclosingChar
+
+  try:
+    # nested try necessary for finally in Python 2.4
+    try:
+      #outfile = codecs.open(tgtGigasetAbsName, "wb","latin1","xmlcharrefreplace")
+      outfile = codecs.open(tgtGMXAbsName, "wb", "latin1")
+      for curAddressDict in addressLines:
+        if len(curAddressDict["EMail1"]) != 0:
+          line = gmxEnclosingChar + curAddressDict["Nachname"] + outSep +  curAddressDict["Vorname"] +  outSep + curAddressDict["EMail1"] +  gmxEnclosingChar + lineEnd
+          logging.debug("line = " + line)   
+          outfile.write(line)        
+          if len(curAddressDict["EMail2"]) != 0:
+            line2 = gmxEnclosingChar + curAddressDict["Nachname"] + outSep +  curAddressDict["Vorname"] + outSep + curAddressDict["EMail2"] + gmxEnclosingChar + lineEnd
+            logging.debug("line2 = " + line2)   
+            outfile.write(line2)        
+    except IOError:
+      logging.info("error opening file %s" % tgtGMXAbsName) 
+  finally:
+    outfile.close()
+  return 1
+
+
+
+
 
 ############################################################################
 # main starts here
@@ -415,11 +449,12 @@ inSeparator = ','
 inEnclosingChar='"'
 addressLines = []
 curDict = {}
-(srcName, tgtThunderbirdAbsName,tgtGigasetAbsName,tgtTSinusAbsName) = readConfigFromXML(configFileName)
+(srcName, tgtThunderbirdAbsName,tgtGigasetAbsName,tgtTSinusAbsName,tgtGMXAbsName) = readConfigFromXML(configFileName)
 processSrcFile(srcName)
 writeThunderbirdOutput(tgtThunderbirdAbsName)
 writeGigasetOutput(tgtGigasetAbsName)
 writeTSinusOutput(tgtTSinusAbsName)
+writeGMXCSVOutput(tgtGMXAbsName)
 
 
 ###########################################################################
