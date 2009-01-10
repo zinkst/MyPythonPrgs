@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<config>
+	<win32>
+		<srcDirName>D:\persdata\Stefan\OpenOffice\Adressdatei\</srcDirName>
+		<tgtDirName value="D:\persdata\Stefan\OpenOffice\Adressdatei\" />
+	</win32>
+	<linux2>
+		<!-- productionData 
+		<ROOT-DIR value="/home/zinks/Stefan/myPrg/MyPythonPrgs/SearchAndCopyFileFromOriginalDir/testdata/" />
+		<ORIGINALS-DIR>src/Alben</ORIGINALS-DIR> 
+		<COPIES-ORIG-DIR>src/car</COPIES-ORIG-DIR> 
+		<COPIES-TGT-DIR>test/car_new</COPIES-TGT-DIR> 
+		--> 
+		<!-- testData -->			
+		<ROOT-DIR value="/home/zinks/Stefan/myPrg/MyPythonPrgs/SearchAndCopyFileFromOriginalDir/testdata/" />
+		<ORIGINALS-DIR>src/Alben</ORIGINALS-DIR> 
+		<COPIES-ORIG-DIR>src/car</COPIES-ORIG-DIR> 
+		<COPIES-TGT-DIR>test/car_new</COPIES-TGT-DIR> 
+		
+	</linux2>
+	<generic>
+ 		<!-- productionData -->
+	    
+		<!-- testData -->
+			
+	</generic>
+</config>
