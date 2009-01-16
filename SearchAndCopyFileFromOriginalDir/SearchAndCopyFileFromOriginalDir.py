@@ -77,12 +77,13 @@ def extendInputParams(inputParams):
   inputParams["ABS-ORIGINALS-DIR"]=os.path.join(inputParams["ROOT-DIR"],inputParams["ORIGINALS-DIR"])
   inputParams["ABS-COPIES-ORIG-DIR"]=os.path.join(inputParams["ROOT-DIR"],inputParams["COPIES-ORIG-DIR"])
   inputParams["ABS-COPIES-TGT-DIR"]=os.path.join(inputParams["ROOT-DIR"],inputParams["COPIES-TGT-DIR"])
+  inputParams["ROOT-DIR_LENGTH"]=len(inputParams["ROOT-DIR"])
   logging.debug("extended inputParams = \n%s" % inputParams) 
   return inputParams
 
 ###########################################################################
 def createFileObjectsList(inputParams):
-  fileOjects = []
+  fileObjects = []
   for verz, verzList, dateiListe in os.walk (inputParams["ABS-COPIES-ORIG-DIR"]):
     logging.debug(" verzList = " + str(verzList) )
     logging.debug(" dateiListe = " + str(dateiListe))
@@ -94,16 +95,8 @@ def createFileObjectsList(inputParams):
             newFile = FileObject()
             FileObject.initialize(newFile,inputParams,absCopiesOrigDateiName)
             logging.debug(FileObject.printOut(newFile))
+            fileObjects.append(newFile) 
 
-
-#  linkObjects = []
-#  for curFile in listOfLinks:
-#    newLink = LinkObject()
-#    newLink.linkAbsLocation = os.path.join(absLinkDirName,curFile)
-#    LinkObject.initialize(newLink,rootDir)
-#    linkObjects.append(newLink)
-#    logging.debug(LinkObject.printOut(newLink))
-#  return linkObjects 
 
 ###########################################################################
 def processFileObjects(linkObject):

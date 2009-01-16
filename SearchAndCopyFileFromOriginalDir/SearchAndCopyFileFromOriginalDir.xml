@@ -14,7 +14,7 @@
 		<!-- testData -->			
 		<ROOT-DIR value="/home/zinks/Stefan/myPrg/MyPythonPrgs/SearchAndCopyFileFromOriginalDir/testdata/" />
 		<ORIGINALS-DIR>src/Alben</ORIGINALS-DIR> 
-		<COPIES-ORIG-DIR>src/car</COPIES-ORIG-DIR> 
+		<COPIES-ORIG-DIR>test/car</COPIES-ORIG-DIR> 
 		<COPIES-TGT-DIR>test/car_new</COPIES-TGT-DIR> 
 		
 	</linux2>
