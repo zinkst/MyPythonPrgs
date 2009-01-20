@@ -7,7 +7,7 @@ import logging
 import logging.config 
 import os
 
-import scriptutil as SU
+#import scriptutil as SU
 
     
 class FileObject:

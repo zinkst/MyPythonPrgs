@@ -21,7 +21,7 @@ from xml.dom import Node
 import codecs
 from FileObject import FileObject
 from functions import initLogger
-import scriptutil as SU
+#import scriptutil as SU
     
 ############################################################################
 """
