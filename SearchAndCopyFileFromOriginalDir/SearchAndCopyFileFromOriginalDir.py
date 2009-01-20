@@ -59,9 +59,8 @@ def readConfigFromXML(configFileName):
                   
         elif l1Node.nodeName == "generic":
             for l2Node in l1Node.childNodes:
-                if l2Node.nodeName == "srcFilename":
-                    #srcFilename = l2Node.getAttribute("value").encode(defaultEncoding)
-                    srcFilename = l2Node.getAttribute("value")
+                if l2Node.nodeName == "debug":
+                    inputParams["DEBUG"] = l2Node.firstChild.nodeValue
                 if l2Node.nodeName == "linkPrefix":
 #                    linkPrefix = l2Node.getAttribute("value").encode(defaultEncoding)
                     linkPrefix = l2Node.getAttribute("value")
@@ -84,6 +83,7 @@ def extendInputParams(inputParams):
 ###########################################################################
 def createFileObjectsList(inputParams):
   fileObjects = []
+  notFoundFileObjects = []
   for verz, verzList, dateiListe in os.walk (inputParams["ABS-COPIES-ORIG-DIR"]):
     logging.debug(" verzList = " + str(verzList) )
     logging.debug(" dateiListe = " + str(dateiListe))
@@ -94,20 +94,70 @@ def createFileObjectsList(inputParams):
             logging.debug(" absCopiesOrigDateiName = " + str(absCopiesOrigDateiName) )
             newFile = FileObject()
             FileObject.initialize(newFile,inputParams,absCopiesOrigDateiName)
-            logging.debug(FileObject.printOut(newFile))
-            fileObjects.append(newFile) 
-
+            logging.info(FileObject.printOut(newFile))
+            if newFile.foundOriginal == -1:
+              notFoundFileObjects.append(newFile) 
+            else:
+              fileObjects.append(newFile) 
+  return (fileObjects,notFoundFileObjects)
 
 ###########################################################################
-def processFileObjects(linkObject):
-  logging.debug("calling os.remove("+linkObject.linkAbsLocation+")" )
-  #os.remove(linkObject.linkAbsLocation)
-  logging.debug("calling shutil.move("+linkObject.fileAbsLocation+","+linkObject.linkAbsLocationDir +") )")
-  #shutil.move(linkObject.fileAbsLocation,linkObject.linkAbsLocationDir )
-  logging.debug("calling os.chdir("+linkObject.newLinkAbsoluteDir+")")
-  #os.chdir(linkObject.newLinkAbsoluteDir)
-  logging.debug("calling os.symlink("+linkObject.newLinkTarget+","+linkObject.baseName+")")
-  #os.symlink(linkObject.newLinkTarget,linkObject.baseName)
+def processFileObjects(fileObject):
+  """
+'ROOT-DIR': '/home/zinks/Stefan/myPrg/MyPythonPrgs/SearchAndCopyFileFromOriginalDir/testdata/'
+'ORIGINALS-DIR': u'src/Alben'
+'COPIES-TGT-DIR': u'test/car_new'
+'COPIES-ORIG-DIR': u'test/car'
+'ABS-COPIES-TGT-DIR': u'/home/zinks/Stefan/myPrg/MyPythonPrgs/SearchAndCopyFileFromOriginalDir/testdata/test/car_new'
+'ABS-ORIGINALS-DIR': u'/home/zinks/Stefan/myPrg/MyPythonPrgs/SearchAndCopyFileFromOriginalDir/testdata/src/Alben'
+'ABS-COPIES-ORIG-DIR': u'/home/zinks/Stefan/myPrg/MyPythonPrgs/SearchAndCopyFileFromOriginalDir/testdata/test/car'
+
+fileBaseName = 03_Rosenrot.mp3
+absCopiesOrigDateiName = /home/zinks/Stefan/myPrg/MyPythonPrgs/SearchAndCopyFileFromOriginalDir/testdata/test/car/010MP3CAR/02_Rammstein_Rosenrot/03_Rosenrot.mp3
+copiesPathRelativeToRootDir = test/car/010MP3CAR/02_Rammstein_Rosenrot/03_Rosenrot.mp3
+copiesDirRelativeToRootDir = test/car/010MP3CAR/02_Rammstein_Rosenrot
+copiesTgtDirRelativeToRootDir = test/car_new/MP3CAR/02_Rammstein_Rosenrot
+copiesLinkDepthToBaseDir = 4
+absDateiNameOnOriginal = /home/zinks/Stefan/myPrg/MyPythonPrgs/SearchAndCopyFileFromOriginalDir/testdata/src/Alben/Rammstein/Rosenrot/03_Rosenrot.mp3
+dateiNameOnOriginalRelativeToRootDir = src/Alben/Rammstein/Rosenrot/03_Rosenrot.mp3
+directoryNameOnOriginalRelativeToRootDir = src/Alben/Rammstein/Rosenrot
+  """
+  
+  logging.debug("calling   os.chdir("+fileObject.ip['ROOT-DIR']+")" )
+  #os.chdir(fileObject.ROOT-DIR)
+  newTgtDir = os.path.join(fileObject.ip['ROOT-DIR'],fileObject.copiesTgtDirRelativeToRootDir)
+  if  not os.path.exists(newTgtDir):
+    logging.debug("calling   os.makedirs("+newTgtDir+",'0775')")
+    if inputParams["DEBUG"] != "true": 
+      os.makedirs(newTgtDir )#,'0775')
+    
+  logging.debug("calling os.chdir("+newTgtDir+")")
+  if inputParams["DEBUG"] != "true": 
+    os.chdir(newTgtDir)
+  
+  newRelLink=os.path.join("../"*fileObject.copiesLinkDepthToBaseDir,fileObject.dateiNameOnOriginalRelativeToRootDir)
+  logging.debug("checking os.symlink("+newRelLink+","+fileObject.fileBaseName+")")
+  if  not os.path.exists(fileObject.fileBaseName):
+    logging.debug("calling os.symlink("+newRelLink+","+fileObject.fileBaseName+")")
+    if inputParams["DEBUG"] != "true": 
+      os.symlink(newRelLink,fileObject.fileBaseName)
+
+############################################################################
+def writeNotFoundFilesToFile(notFoundFileObjects):
+    try:
+        #outfile = codecs.open(, "wb","latin1","xmlcharrefreplace")
+        outFileName=os.path.join(inputParams['ROOT-DIR'],inputParams['COPIES-ORIG-DIR'],"notFoundFiles.txt" )
+        outfile = codecs.open(outFileName, "wb", "utf8")
+        try:
+          for curNotFoundFileObj in notFoundFileObjects:
+            outLine=curNotFoundFileObj.absCopiesOrigDateiName
+            logging.info("outLine="+outLine)
+            outfile.write(outLine + '\n')
+        finally:
+            outfile.close()
+    except IOError:
+        logging.info("error opening file %s" % outFileName) 
+    return 1
   
 
 ############################################################################
@@ -133,7 +183,12 @@ inputParams={}
 
 inputParams = readConfigFromXML(configFileName)
 inputParams = extendInputParams(inputParams)
-createFileObjectsList(inputParams)
+(fileObjects,notFoundFileObjects) = createFileObjectsList(inputParams)
+for curFileObj in fileObjects:
+  processFileObjects(curFileObj)
+writeNotFoundFilesToFile(notFoundFileObjects)
+
+
 #(rootDir, relPathToLinks) = readConfigFromXML(configFileName)
 #linkObjects = createLinkObjectsList(rootDir, relPathToLinks)
 #for curLinkObj in linkObjects:

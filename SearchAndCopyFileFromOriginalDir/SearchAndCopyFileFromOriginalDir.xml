@@ -5,22 +5,21 @@
 		<tgtDirName value="D:\persdata\Stefan\OpenOffice\Adressdatei\" />
 	</win32>
 	<linux2>
-		<!-- productionData 
+		<!-- productionData -->
 		<ROOT-DIR value="/home/zinks/Stefan/myPrg/MyPythonPrgs/SearchAndCopyFileFromOriginalDir/testdata/" />
 		<ORIGINALS-DIR>src/Alben</ORIGINALS-DIR> 
 		<COPIES-ORIG-DIR>src/car</COPIES-ORIG-DIR> 
 		<COPIES-TGT-DIR>test/car_new</COPIES-TGT-DIR> 
-		--> 
-		<!-- testData -->			
+		<!-- testData 			
 		<ROOT-DIR value="/home/zinks/Stefan/myPrg/MyPythonPrgs/SearchAndCopyFileFromOriginalDir/testdata/" />
 		<ORIGINALS-DIR>src/Alben</ORIGINALS-DIR> 
 		<COPIES-ORIG-DIR>test/car</COPIES-ORIG-DIR> 
 		<COPIES-TGT-DIR>test/car_new</COPIES-TGT-DIR> 
-		
+		-->
 	</linux2>
 	<generic>
  		<!-- productionData -->
-	    
+	    <debug>false</debug>
 		<!-- testData -->
 			
 	</generic>
