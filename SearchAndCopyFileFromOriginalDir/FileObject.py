@@ -18,7 +18,6 @@ class FileObject:
 'COPIES-TGT-DIR': u'test/car_new'
 'COPIES-ORIG-DIR': u'test/car'
 'ABS-COPIES-TGT-DIR': u'/home/zinks/Stefan/myPrg/MyPythonPrgs/SearchAndCopyFileFromOriginalDir/testdata/test/car_new'
-'ABS-ORIGINALS-DIR': u'/home/zinks/Stefan/myPrg/MyPythonPrgs/SearchAndCopyFileFromOriginalDir/testdata/src/Alben'
 'ABS-COPIES-ORIG-DIR': u'/home/zinks/Stefan/myPrg/MyPythonPrgs/SearchAndCopyFileFromOriginalDir/testdata/test/car'
 
 fileBaseName = 01_Atlantic.mp3
@@ -63,7 +62,7 @@ directoryNameOnOriginalRelativeToRootDir = src/Alben/Keane/Under The Iron Sea
     self.ip = inputParams
     self.absCopiesOrigDateiName = in_absCopiesOrigDateiName
     self.fileBaseName = os.path.basename(self.absCopiesOrigDateiName) 
-    filesOnOriginal = self.findFileInDir(self.ip["ABS-ORIGINALS-DIR"],self.fileBaseName)
+    filesOnOriginal = self.findFileInDirs(self.ip["ORIGINALS-DIRS"],self.fileBaseName)
     # TODO handle mutiple hits
     logging.debug("filesOnOriginal = ") , filesOnOriginal
     if filesOnOriginal == "":
@@ -80,21 +79,24 @@ directoryNameOnOriginalRelativeToRootDir = src/Alben/Keane/Under The Iron Sea
       
       
 
-  def findFileInDir(self,dirName,filePattern):
+  def findFileInDirs(self,dirNames,filePattern):
     tgtCompleteFileName = u""
     found= -1
-    for dir, dirList, fileList in os.walk (dirName):
-#      logging.debug(" dirList = " + str(dirList) )
-#      logging.debug(" fileList = " + str(fileList))
-      for file in fileList:
-        if file == filePattern:
-          tgtCompleteFileName = os.path.join(dir,file)
-          found = 1
-          break
-        else:
-          found = -1   
-      if found == 1:
-        break  
+    for relDirName in dirNames:
+      dirName = os.path.join(self.ip["ROOT-DIR"],relDirName)
+      logging.debug(" dirName = " + dirName )
+      for dir, dirList, fileList in os.walk (dirName):
+  #      logging.debug(" dirList = " + str(dirList) )
+  #      logging.debug(" fileList = " + str(fileList))
+        for file in fileList:
+          if file == filePattern:
+            tgtCompleteFileName = os.path.join(dir,file)
+            found = 1
+            break
+          else:
+            found = -1   
+        if found == 1:
+          break  
     return tgtCompleteFileName        
 
 

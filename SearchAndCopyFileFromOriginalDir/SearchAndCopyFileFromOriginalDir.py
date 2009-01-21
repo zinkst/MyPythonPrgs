@@ -26,7 +26,7 @@ from functions import initLogger
 ############################################################################
 """
     <ROOT-DIR value="/home/zinks/Stefan/myPrg/MyPythonPrgs/SearchAndCopyFileFromOriginalDir/testdata/" />
-    <ORIGINALS-DIR>src/Alben</ORIGINALS-DIR> 
+    <ORIGINALS-DIRS>src/Alben</ORIGINALS-DIRS> 
     <COPIES-ORIG-DIR>src/car</COPIES-ORIG-DIR> 
     <COPIES-TGT-DIR>test/car_new</COPIES-TGT-DIR> 
 """
@@ -37,7 +37,7 @@ def readConfigFromXML(configFileName):
     except IOError:
         print "config file " + configFileName + " not found"
         sys.exit(1)
-        
+    listOfOrigDirs = []    
     #print xmldoc.toxml().encode("utf-8")
     logging.debug(xmldoc.toxml(defaultEncoding))
     configNode = xmldoc.firstChild
@@ -47,9 +47,12 @@ def readConfigFromXML(configFileName):
                 if l2Node.nodeName == "ROOT-DIR":
                     """ Zugriff auf ein Attribut des tags """
                     inputParams["ROOT-DIR"]=l2Node.getAttribute("value").encode(defaultEncoding)
-                if l2Node.nodeName == "ORIGINALS-DIR":
+                if l2Node.nodeName == "ORIGINALS-DIRS":
                     """ Zugriff auf den Wert des tags """
-                    inputParams["ORIGINALS-DIR"] = l2Node.firstChild.nodeValue
+                    for l3Node in l2Node.childNodes: 
+                      if l3Node.nodeName == "el":
+                        listOfOrigDirs.append(l3Node.firstChild.nodeValue)
+                    inputParams["ORIGINALS-DIRS"] = listOfOrigDirs
                 if l2Node.nodeName == "COPIES-ORIG-DIR":
                     """ Zugriff auf den Wert des tags """
                     inputParams["COPIES-ORIG-DIR"] = l2Node.firstChild.nodeValue
@@ -73,7 +76,7 @@ def readConfigFromXML(configFileName):
 
 ###########################################################################
 def extendInputParams(inputParams):
-  inputParams["ABS-ORIGINALS-DIR"]=os.path.join(inputParams["ROOT-DIR"],inputParams["ORIGINALS-DIR"])
+#  inputParams["ABS-ORIGINALS-DIR"]=os.path.join(inputParams["ROOT-DIR"],inputParams["ORIGINALS-DIRS"])
   inputParams["ABS-COPIES-ORIG-DIR"]=os.path.join(inputParams["ROOT-DIR"],inputParams["COPIES-ORIG-DIR"])
   inputParams["ABS-COPIES-TGT-DIR"]=os.path.join(inputParams["ROOT-DIR"],inputParams["COPIES-TGT-DIR"])
   inputParams["ROOT-DIR_LENGTH"]=len(inputParams["ROOT-DIR"])
@@ -105,11 +108,10 @@ def createFileObjectsList(inputParams):
 def processFileObjects(fileObject):
   """
 'ROOT-DIR': '/home/zinks/Stefan/myPrg/MyPythonPrgs/SearchAndCopyFileFromOriginalDir/testdata/'
-'ORIGINALS-DIR': u'src/Alben'
+'ORIGINALS-DIRS': u'src/Alben'
 'COPIES-TGT-DIR': u'test/car_new'
 'COPIES-ORIG-DIR': u'test/car'
 'ABS-COPIES-TGT-DIR': u'/home/zinks/Stefan/myPrg/MyPythonPrgs/SearchAndCopyFileFromOriginalDir/testdata/test/car_new'
-'ABS-ORIGINALS-DIR': u'/home/zinks/Stefan/myPrg/MyPythonPrgs/SearchAndCopyFileFromOriginalDir/testdata/src/Alben'
 'ABS-COPIES-ORIG-DIR': u'/home/zinks/Stefan/myPrg/MyPythonPrgs/SearchAndCopyFileFromOriginalDir/testdata/test/car'
 
 fileBaseName = 03_Rosenrot.mp3

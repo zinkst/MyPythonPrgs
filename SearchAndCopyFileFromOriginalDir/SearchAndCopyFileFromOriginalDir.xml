@@ -5,22 +5,30 @@
 		<tgtDirName value="D:\persdata\Stefan\OpenOffice\Adressdatei\" />
 	</win32>
 	<linux2>
-		<ROOT-DIR value="/links/Music/" />
-		<ORIGINALS-DIR>Alben</ORIGINALS-DIR> 
-		<COPIES-ORIG-DIR>car/001MP3CAR_KlassikHardRock</COPIES-ORIG-DIR> 
-		<COPIES-TGT-DIR>car_new/001MP3CAR_KlassikHardRock</COPIES-TGT-DIR> 
 		<!-- productionData 
+		<ROOT-DIR value="/links/Music/" />
+		<ORIGINALS-DIRS>
+		  <el>Meine CDs</el>
+		  <el>Alben</el>
+		</ORIGINALS-DIRS> 
+		<COPIES-ORIG-DIR>car/001MP3CAR_KlassikHardRock</COPIES-ORIG-DIR> 
+		<COPIES-TGT-DIR>car_new/001MP3CAR_KlassikHardRock</COPIES-TGT-DIR>
+		--> 
+		<!-- productionData 2 
 		<ROOT-DIR value="/home/zinks/Stefan/myPrg/MyPythonPrgs/SearchAndCopyFileFromOriginalDir/testdata/" />
 		<ORIGINALS-DIR>src/Alben</ORIGINALS-DIR> 
 		<COPIES-ORIG-DIR>src/car</COPIES-ORIG-DIR> 
 		<COPIES-TGT-DIR>test/car_new</COPIES-TGT-DIR>
 		--> 
-		<!-- testData 			
+		<!-- testData --> 			
 		<ROOT-DIR value="/home/zinks/Stefan/myPrg/MyPythonPrgs/SearchAndCopyFileFromOriginalDir/testdata/" />
-		<ORIGINALS-DIR>src/Alben</ORIGINALS-DIR> 
+		<ORIGINALS-DIRS>
+		  <el>src/Meine CDs</el>
+		  <el>src/Alben</el>
+		</ORIGINALS-DIRS> 
 		<COPIES-ORIG-DIR>test/car</COPIES-ORIG-DIR> 
 		<COPIES-TGT-DIR>test/car_new</COPIES-TGT-DIR> 
-		-->
+		
 	</linux2>
 	<generic>
  		<!-- productionData -->
