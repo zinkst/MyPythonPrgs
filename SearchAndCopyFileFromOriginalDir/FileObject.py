@@ -6,6 +6,7 @@ import string
 import logging
 import logging.config 
 import os
+import re
 
 #import scriptutil as SU
 
@@ -66,8 +67,10 @@ directoryNameOnOriginalRelativeToRootDir = src/Alben/Keane/Under The Iron Sea
     # TODO handle mutiple hits
     logging.debug("filesOnOriginal = ") , filesOnOriginal
     if filesOnOriginal == "":
-      self.foundOriginal = -1
-    else:  
+      filesOnOriginal = self.findFileInDirsCaseInsensitive(self.ip["ORIGINALS-DIRS"],self.fileBaseName)
+      if filesOnOriginal == "":
+        self.foundOriginal = -1
+    if self.foundOriginal == 1:  
       self.absDateiNameOnOriginal=filesOnOriginal
       self.copiesPathRelativeToRootDir=self.absCopiesOrigDateiName[self.ip["ROOT-DIR_LENGTH"]:]          
       self.copiesDirRelativeToRootDir=os.path.dirname(self.copiesPathRelativeToRootDir)
@@ -91,6 +94,27 @@ directoryNameOnOriginalRelativeToRootDir = src/Alben/Keane/Under The Iron Sea
         for file in fileList:
           if file == filePattern:
             tgtCompleteFileName = os.path.join(dir,file)
+            found = 1
+            break
+          else:
+            found = -1   
+        if found == 1:
+          break  
+    return tgtCompleteFileName        
+
+  def findFileInDirsCaseInsensitive(self,dirNames,filePattern):
+    tgtCompleteFileName = u""
+    found= -1
+    for relDirName in dirNames:
+      dirName = os.path.join(self.ip["ROOT-DIR"],relDirName)
+      logging.debug(" dirName = " + dirName )
+      for dir, dirList, fileList in os.walk (dirName):
+  #      logging.debug(" dirList = " + str(dirList) )
+  #      logging.debug(" fileList = " + str(fileList))
+        for file in fileList:
+          match = re.search(filePattern,file,re.IGNORECASE)
+          if match != None:
+            tgtCompleteFileName = os.path.join(dir,match.group(0))
             found = 1
             break
           else:
