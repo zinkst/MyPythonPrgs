@@ -6,16 +6,16 @@
 	</win32>
 	<linux2>
 		<!-- productionData --> 
-		<ROOT-DIR value="/links/Music/" />
+		<ROOT-DIR value="/links/Photos/" />
 		<ORIGINALS-DIRS>
-		  <el>Sammlung/Stefans CDs</el>
-		  <el>Sammlung/Alben</el>
-		  <el>Sammlung/Singles</el>
+		  <el>2008</el>
+		  <el>2009</el>
+		  <el>2007</el>
 		</ORIGINALS-DIRS> 
 <!--		<COPIES-ORIG-DIR>car/008MP3CAR_2002</COPIES-ORIG-DIR> 
 		<COPIES-TGT-DIR>car_new/008MP3CAR_2002</COPIES-TGT-DIR>
--->		<COPIES-ORIG-DIR>car/011MP3CAR</COPIES-ORIG-DIR> 
-		<COPIES-TGT-DIR>car_new/011MP3CAR</COPIES-TGT-DIR>
+-->		<COPIES-ORIG-DIR>Entwickeln/1_bisherigeBestellungen/2009</COPIES-ORIG-DIR> 
+		<COPIES-TGT-DIR>Entwickeln_links/1_bisherigeBestellungen/2009</COPIES-TGT-DIR>
 		<!-- productionData 2 
 		<ROOT-DIR value="/home/zinks/Stefan/myPrg/MyPythonPrgs/SearchAndCopyFileFromOriginalDir/testdata/" />
 		<ORIGINALS-DIR>src/Alben</ORIGINALS-DIR> 
@@ -34,8 +34,8 @@
 	</linux2>
 	<generic>
  		<!-- productionData -->
+		<searchPattern value="jpg" />
 	    <debug>false</debug>
-	    <searchPattern value="mp3" />
 		<!-- testData -->
 			
 	</generic>
