@@ -35,7 +35,6 @@
 	<generic>
  		<!-- productionData -->
 	    <debug>false</debug>
-	    <searchPattern value="mp3" />
 		<!-- testData -->
 			
 	</generic>
