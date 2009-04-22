@@ -90,7 +90,7 @@ def readConfigFromXML(configFileName):
 def processFile(srcCompleteFileName, tgtCompleteFileName, toolName, toolOptions):
     command = "%s %s %s >%s" % (toolName,toolOptions,srcCompleteFileName,tgtCompleteFileName)
     print command
-    os.system(command)
+    #os.system(command)
 
 
 ############################################################################
@@ -123,7 +123,7 @@ logging.info("fileFilter = %s" % fileFilter)
 for Verz, VerzList, DateiListe in os.walk (srcDirName):
     logging.debug(" VerzList = " + str(VerzList) )
     logging.debug(" DateiListe = " + str(DateiListe))
-    for Datei in DateiListe:
+    for Datei in sorted(DateiListe):
         srcCompleteFileName  = os.path.join(Verz,Datei)
         logging.debug(" srcCompleteFileName  = " + srcCompleteFileName)
         if fnmatch.fnmatch(srcCompleteFileName, fileFilter):
