@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<config>
+	<win32>
+		<!-- <srcDirName value="F:\mp3car\010MP3CAR\06_Björk_Telegram" /> -->
+		<srcDirName>E:\mp3car\010MP3CAR\</srcDirName>
+		<tgtDirName value="e:\mp3car\010MP3STICK" />
+		<mp3Encoder value="C:\Programs\Multimedia\lame\lame.exe" />
+	</win32>
+	<linux2>
+		<!-- testdata  
+		<srcDirName>/home/zinks/persdata/Stefan/myPrg/MyPythonPrgs/DiaExifRenamer/testdata/src</srcDirName>
+		<tgtDirName value="/home/zinks/persdata/Stefan/myPrg/MyPythonPrgs/DiaExifRenamer/testdata/tgt" />
+		-->
+		<!-- production --> 
+		<srcDirName>/home/zinks/Photos/1986 - 2000 Sonstige Photos von Stefan /1995_Nordeuropatour</srcDirName> 
+		<tgtDirName>/home/zinks/Photos/1986 - 2000 Sonstige Photos von Stefan /1995_Nordeuropatour</tgtDirName>
+		
+		<toolName value="exiftool" />
+		
+	</linux2>
+	<generic>
+		<toolOptions value="-P -overwrite_original " />
+		<fileFilter value="*.jpg*" />
+	</generic>
+	<!--  exiftool -P -CreateDate='2009.05.06 06:47:00' -DateTimeDigitized='2009.05.06 06:47:00' -DateTimeOriginal=1995:05:24 -comment='Löwensteiner Berge' -UserComment='Löwensteiner Berge User' 1995_Nordeuropatour/1995A/1995A02_0524_Löwensteiner\ Berge.jpg  --> 
+</config>
