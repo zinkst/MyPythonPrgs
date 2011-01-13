@@ -7,17 +7,17 @@
 		<mp3Encoder value="C:\Programs\Multimedia\lame\lame.exe" />
 	</win32>
 	<linux2>
-		<!-- testdata -->
+		<!-- testdata 
 		<srcDirName>/home/zinks/persdata/Stefan/myPrg/MyPythonPrgs/ConvertDirectoryTree/testdata/src</srcDirName>
 		<tgtDirName value="/home/zinks/persdata/Stefan/myPrg/MyPythonPrgs/ConvertDirectoryTree/testdata/tgt" />
-		<!-- 
-		<srcDirName>/home/zinks/workspaces/private_ws/Perl-Schulung-AU220D0DE/MusterLoesungen</srcDirName>
-		<tgtDirName value="/home/zinks/workspaces/private_ws/Perl-Schulung-AU220D0DE/MusterLoesungen_utf8" />
 		-->
-		<toolName value="iconv" />
+		<!-- production -->
+		<srcDirName>/home/zinks/Music/car_files</srcDirName>
+		<tgtDirName value="/home/zinks/tmpdata/tmp" />
+		<toolName value="cp" />
 	</linux2>
 	<generic>
-		<toolOptions value="-f iso8859-1 -t utf-8" />
-		<fileFilter value="*.p*" />
+		<toolOptions value="-prv" />
+		<fileFilter value="*.mp3*" />
 	</generic>
 </config>

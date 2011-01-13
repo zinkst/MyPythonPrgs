@@ -84,7 +84,15 @@ def readConfigFromXML(configFileName):
     logging.debug("toolOptions = %s" % toolOptions) 
     logging.debug("fileFilter = %s" % fileFilter) 
     
-    return (srcDirName,tgtDirName,toolName,toolOptions,fileFilter)
+    inputParams["srcDirName"]=srcDirName.encode(defaultEncoding)
+    inputParams["tgtDirName"]=tgtDirName.encode(defaultEncoding)
+    inputParams["toolName"]=toolName.encode(defaultEncoding)
+    inputParams["toolOptions"]=toolOptions.encode(defaultEncoding)
+    inputParams["fileFilter"]=fileFilter.encode(defaultEncoding)
+    
+    return (inputParams)
+
+###################################################################################################
 
 ############################################################################
 def processFile(srcCompleteFileName, tgtCompleteFileName, toolName, toolOptions):
@@ -111,24 +119,19 @@ if len(sys.argv) == 1 :
 else:
     configFileName=sys.argv[1]
 
-(srcDirName,tgtDirName,toolName,toolOptions,fileFilter) = readConfigFromXML(configFileName)
+inputParams={}
 
-logging.info("srcDirName = %s" % srcDirName) 
-logging.info("tgtDirName = %s" % tgtDirName) 
-logging.info("toolName = %s" % toolName) 
-logging.info("toolOptions = %s" % toolOptions) 
-logging.info("fileFilter = %s" % fileFilter) 
-    
- 
-for Verz, VerzList, DateiListe in os.walk (srcDirName):
+inputParms = readConfigFromXML(configFileName)
+
+for Verz, VerzList, DateiListe in os.walk (inputParams["srcDirName"]):
     logging.debug(" VerzList = " + str(VerzList) )
     logging.debug(" DateiListe = " + str(DateiListe))
     for Datei in sorted(DateiListe):
         srcCompleteFileName  = os.path.join(Verz,Datei)
         logging.debug(" srcCompleteFileName  = " + srcCompleteFileName)
-        if fnmatch.fnmatch(srcCompleteFileName, fileFilter):
-            tgtCompleteFileName = findTGTFileName(srcCompleteFileName, srcDirName,tgtDirName)
-            processFile(srcCompleteFileName, tgtCompleteFileName, toolName, toolOptions)
+        if fnmatch.fnmatch(srcCompleteFileName, inputParams["fileFilter"]):
+            tgtCompleteFileName = findTGTFileName(srcCompleteFileName, inputParams["srcDirName"],inputParams["tgtDirName"])
+            processFile(srcCompleteFileName, tgtCompleteFileName, inputParams["toolName"],inputParams["toolOptions"])
             
-print ("successfully transfered %s " % srcDirName)
+print ("successfully transfered %s " % inputParams["srcDirName"])
 
