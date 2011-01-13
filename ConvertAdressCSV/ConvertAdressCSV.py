@@ -72,6 +72,10 @@ def readConfigFromXML(configFileName):
                     tgtTSinusName = l2Node.getAttribute("value").encode(defaultEncoding)
                 if l2Node.nodeName == "tgtGMXName":
                     tgtGMXName = l2Node.getAttribute("value").encode(defaultEncoding)
+                if l2Node.nodeName == "tgtSamsungKiesName":
+                    tgtSamsungKiesName = l2Node.getAttribute("value").encode(defaultEncoding)
+                if l2Node.nodeName == "tgtSamsungAndroidVCFName":
+                    tgtSamsungAndroidVCFName = l2Node.getAttribute("value").encode(defaultEncoding)
                                  
              
     logging.debug("srcDirName = %s" % srcDirName) 
@@ -81,19 +85,17 @@ def readConfigFromXML(configFileName):
     logging.debug("tgtGigasetName = %s" % tgtGigasetName) 
     logging.debug("tgtTSinusName = %s" % tgtTSinusName) 
     logging.debug("tgtGMXName = %s" % tgtGMXName) 
+    logging.debug("tgtSamsungKiesName = %s" % tgtSamsungKiesName) 
     
-    srcName=os.path.join(srcDirName, srcFilename)
-    tgtThunderbirdAbsName=os.path.join(tgtDirName, tgtThunderbirdName)
-    tgtGigasetAbsName=os.path.join(tgtDirName, tgtGigasetName)
-    tgtTSinusAbsName=os.path.join(tgtDirName, tgtTSinusName)
-    tgtGMXAbsName=os.path.join(tgtDirName, tgtGMXName)
+    inputDataDict["srcName"]=os.path.join(srcDirName, srcFilename)
+    inputDataDict["tgtThunderbirdAbsName"]=os.path.join(tgtDirName, tgtThunderbirdName)
+    inputDataDict["tgtGigasetAbsName"]=os.path.join(tgtDirName, tgtGigasetName)
+    inputDataDict["tgtTSinusAbsName"]=os.path.join(tgtDirName, tgtTSinusName)
+    inputDataDict["tgtGMXAbsName"]=os.path.join(tgtDirName, tgtGMXName)
+    inputDataDict["tgtSamsungKiesAbsName"]=os.path.join(tgtDirName, tgtSamsungKiesName)
+    inputDataDict["tgtSamsungAndroidVCFName"]=os.path.join(tgtDirName, tgtSamsungAndroidVCFName)
     
-    logging.info("srcName = %s" % srcName) 
-    logging.info("tgtThunderbirdAbsName = %s" % tgtThunderbirdAbsName) 
-    logging.info("tgtGigasetAbsName = %s" % tgtGigasetAbsName) 
-    logging.info("tgtTSinusAbsName = %s" % tgtTSinusAbsName) 
-    logging.info("tgtGMXAbsName = %s" % tgtGMXAbsName) 
-    return (srcName, tgtThunderbirdAbsName,tgtGigasetAbsName,tgtTSinusAbsName,tgtGMXAbsName)
+    return inputDataDict
 
 ############################################################################
 def printDictionaryDynamic(inDict):
@@ -145,6 +147,7 @@ def handleSrcFileLine(curLine):
     else: 
       #(Telefonbucheintrag,Vorname, Nachname, Strasse, PLZ, Ort, Staat, Telefon, mobil, Telefongesch, Fax,Geburtstag, EMail1, EMail2, Nickname, Webseite,Kommentar)
       rest = getNextLineEntry(curLine,"Telefonbucheintrag")
+      rest = getNextLineEntry(rest,"Gruppe")
       rest = getNextLineEntry(rest,"Vorname")
       rest = getNextLineEntry(rest,"Nachname")
       rest = getNextLineEntry(rest,"Strasse")
@@ -402,7 +405,7 @@ def writeGMXCSVOutput(tgtGMXAbsName):
     # nested try necessary for finally in Python 2.4
     try:
       #outfile = codecs.open(tgtGigasetAbsName, "wb","latin1","xmlcharrefreplace")
-      outfile = codecs.open(tgtGMXAbsName, "wb", "latin1")
+      outfile = codecs.open(tgtGMXAbsName, "wb", "utf8")
       for curAddressDict in addressLines:
         if len(curAddressDict["EMail1"]) != 0:
           line = gmxEnclosingChar + curAddressDict["Nachname"] + outSep +  curAddressDict["Vorname"] +  outSep + curAddressDict["EMail1"] +  gmxEnclosingChar + lineEnd
@@ -418,7 +421,152 @@ def writeGMXCSVOutput(tgtGMXAbsName):
     outfile.close()
   return 1
 
+###########################################################################
+def formatTelefonForInternational(srcPhoneNumber):
+    tgtPhoneNumber = srcPhoneNumber.replace('-','')
+    if (tgtPhoneNumber.startswith('0')):
+      tgtPhoneNumber=tgtPhoneNumber[1:]
+      tgtPhoneNumber='+49'+tgtPhoneNumber
+    return tgtPhoneNumber
 
+
+###########################################################################
+def writeSamsungKiesCSVOutput(tgtSamsungKiesAbsName):
+  separator = ','
+  enclosingChar='"'
+  outSep = enclosingChar+separator+enclosingChar
+
+  try:
+    # nested try necessary for finally in Python 2.4
+    try:
+      #outfile = codecs.open(tgtGigasetAbsName, "wb","latin1","xmlcharrefreplace")
+      outfile = codecs.open(tgtSamsungKiesAbsName, "wb", "latin1")
+      #header = "Nachname","Vorname","Anzeigename","Benutzername","Telefonnummer1(Typ)","Telefonnummer1(Nummer)","Telefonnummer2(Typ)","Telefonnummer2(Nummer)","Telefonnummer3(Typ)","Telefonnummer3(Nummer)","E-Mail1(Typ)","E-Mail1(Adresse)","E-Mail2(Typ)","E-Mail2(Adresse)","Adresse1(Straße)","Adresse1(Ort)","Adresse1(Region)","Adresse1(Land)","Adresse1(Postleitzahl)","Geburtstag(Datum)"
+      header = """\"Gruppe","Nachname","Vorname","Anzeigename","Benutzername","Telefonnummer1(Typ)","Telefonnummer1(Nummer)","Telefonnummer2(Typ)","Telefonnummer2(Nummer)","Telefonnummer3(Typ)","Telefonnummer3(Nummer)","Telefonnummer4(Typ)","Telefonnummer4(Nummer)","E-Mail1(Typ)","E-Mail1(Adresse)","E-Mail2(Typ)","E-Mail2(Adresse)","Adresse1(Straße)","Adresse1(Ort)","Adresse1(Region)","Adresse1(Land)","Adresse1(Postleitzahl)","Geburtstag(Datum)\"""" + lineEnd
+      outfile.write(header)
+      firstline = True;
+      for curAddressDict in addressLines:
+        if firstline:
+           # skip first line 
+           firstline = False       
+        else:
+          homePhoneNumber=formatTelefonForInternational(curAddressDict["Telefon"])
+          mobilPhoneNumber=formatTelefonForInternational(curAddressDict["mobil"])
+          workPhoneNumber=formatTelefonForInternational(curAddressDict["Telefongesch"])
+          faxPhoneNumber=formatTelefonForInternational(curAddressDict["Fax"])
+          if (len(curAddressDict["Geburtsjahr"]) != 0):
+            birthday=curAddressDict["Geburtstag"] +"."+curAddressDict["Geburtsmonat"]+"."+curAddressDict["Geburtsjahr"]
+          else:
+            birthday = outSep
+          line = enclosingChar + curAddressDict["Gruppe"] + \
+          outSep +  curAddressDict["Nachname"] + \
+          outSep +  curAddressDict["Vorname"] + \
+          outSep + curAddressDict["Nickname"] + \
+          outSep + curAddressDict["Nickname"] + \
+          outSep + "Custom(heim)" + \
+          outSep + homePhoneNumber + \
+          outSep + "Mobile" + \
+          outSep + mobilPhoneNumber + \
+          outSep + "Landline.Business" + \
+          outSep + workPhoneNumber + \
+          outSep + "Custom" + \
+          outSep + faxPhoneNumber + \
+          outSep + "none" + \
+          outSep + curAddressDict["EMail1"] + \
+          outSep + "other" + \
+          outSep + curAddressDict["EMail2"] + \
+          outSep + curAddressDict["Strasse"] + \
+          outSep + curAddressDict["Ort"] + \
+          outSep + \
+          outSep + curAddressDict["Staat"] + \
+          outSep + curAddressDict["PLZ"] + \
+          outSep + birthday + \
+          enclosingChar + lineEnd
+          logging.debug(line)
+          outfile.write(line)        
+          #logging.debug("%s %s %s %s" % ( homePhoneNumber, mobilPhoneNumber, workPhoneNumber, faxPhoneNumber ))
+    except IOError:
+      logging.info("error opening file %s" % tgtSamsungKiesAbsName) 
+  finally:
+    outfile.close()
+  return 1
+
+
+###########################################################################
+def writeSamsungAndroidVCard(tgtFileName):
+#BEGIN:VCARD
+#VERSION:2.1
+#N:Zink;Rainer;;;
+#FN:Rainer Zink
+#TEL;VOICE:+497153540709
+#TEL;CELL:+491736592333
+#TEL;WORK;VOICE:+4971121734565
+#EMAIL;INTERNET:Rainer.Zink@allianz.de
+#EMAIL;INTERNET:Rainer_Zink@gmx.de
+#ADR;:;;Alte Zimmerei 3;Hochdorf;;73269;D
+#BDAY:1971-03-20
+#END:VCARD
+  try:
+    # nested try necessary for finally in Python 2.4
+    try:
+      #outfile = codecs.open(tgtFileName, "wb","latin1","xmlcharrefreplace")
+      outfile = codecs.open(tgtFileName, "wb", "utf8")
+      for curAddressDict in addressLines:
+        outfile.write(lineEnd)
+        outfile.write('BEGIN:VCARD'+lineEnd)
+        outfile.write('VERSION:2.1'+lineEnd)
+        nameLine='N:'+curAddressDict["Nachname"] + ";" + curAddressDict["Vorname"] + ';;;' + lineEnd
+        logging.info("nameLine="+nameLine)
+        outfile.write(nameLine)
+        FNameLine='FN:'+curAddressDict["Vorname"] + " " + curAddressDict["Nachname"] + lineEnd
+        logging.info("FNameLine="+FNameLine)
+        outfile.write(FNameLine)
+        homePhoneNumber=formatTelefonForInternational(curAddressDict["Telefon"])
+        if len(homePhoneNumber) != 0:
+          telHomeLine='TEL;VOICE:'+homePhoneNumber + lineEnd
+          logging.info("telHomeLine="+telHomeLine)
+          outfile.write(telHomeLine)
+        telWork=formatTelefonForInternational(curAddressDict["Telefongesch"])
+        if len(telWork) != 0:
+          telWorkLine='TEL;WORK;VOICE:'+telWork + lineEnd
+          logging.info("telWorkLine="+telWorkLine)
+          outfile.write(telWorkLine)
+        telCell=formatTelefonForInternational(curAddressDict["mobil"])
+        if len(telCell) != 0:
+          telCellLine='TEL;CELL:'+telCell + lineEnd
+          logging.info("telCellLine="+telCellLine)
+          outfile.write(telCellLine)
+        #EMAIL;INTERNET:Rainer.Zink@allianz.de
+        if len(curAddressDict["EMail1"]) != 0:
+          email1Line='EMAIL;INTERNET:'+ curAddressDict["EMail1"] + lineEnd
+          logging.info("email1Line="+email1Line)
+          outfile.write(email1Line)
+        #EMAIL;INTERNET:Rainer_Zink@gmx.de
+        if len(curAddressDict["EMail2"]) != 0:
+          email2Line='EMAIL;INTERNET:'+ curAddressDict["EMail2"] + lineEnd
+          logging.info("email2Line="+email2Line)
+          outfile.write(email2Line)
+        #ADR;:;;Alte Zimmerei 3;Hochdorf;;73269;D
+        addrLine='ADR;:;;'\
+          + curAddressDict["Strasse"] + ';' \
+          + curAddressDict["Ort"] + ';' \
+          + ';' \
+          + curAddressDict["PLZ"] + ';' \
+          + curAddressDict["Staat"]  \
+          + lineEnd
+        logging.info("addrLine="+addrLine)
+        outfile.write(addrLine)
+        #BDAY:1971-03-20
+        if (len(curAddressDict["Geburtsjahr"]) != 0):
+          birthdayLine='BDAY:'+curAddressDict["Geburtsjahr"] +"-"+curAddressDict["Geburtsmonat"]+"-"+curAddressDict["Geburtstag"]+lineEnd
+          logging.info("birthdayLine="+birthdayLine)
+          outfile.write(birthdayLine)
+        outfile.write('END:VCARD')
+    except IOError:
+      logging.info("error opening file %s" % tgtFileName) 
+  finally:
+    outfile.close()
+  return 1
 
 
 
@@ -449,13 +597,16 @@ inSeparator = ','
 inEnclosingChar='"'
 addressLines = []
 curDict = {}
-(srcName, tgtThunderbirdAbsName,tgtGigasetAbsName,tgtTSinusAbsName,tgtGMXAbsName) = readConfigFromXML(configFileName)
-processSrcFile(srcName)
-writeThunderbirdOutput(tgtThunderbirdAbsName)
-writeGigasetOutput(tgtGigasetAbsName)
-writeTSinusOutput(tgtTSinusAbsName)
-writeGMXCSVOutput(tgtGMXAbsName)
-
+inputDataDict = {}
+#(srcName, tgtThunderbirdAbsName,tgtGigasetAbsName,tgtTSinusAbsName,tgtGMXAbsName,tgtSamsungKiesAbsName) = readConfigFromXML(configFileName)
+inputDataDict = readConfigFromXML(configFileName)
+processSrcFile(inputDataDict["srcName"])
+writeThunderbirdOutput(inputDataDict["tgtThunderbirdAbsName"])
+writeGigasetOutput(inputDataDict["tgtGigasetAbsName"])
+writeTSinusOutput(inputDataDict["tgtTSinusAbsName"])
+writeGMXCSVOutput(inputDataDict["tgtGMXAbsName"])
+writeSamsungKiesCSVOutput(inputDataDict["tgtSamsungKiesAbsName"])
+writeSamsungAndroidVCard(inputDataDict["tgtSamsungAndroidVCFName"])
 
 ###########################################################################
 def testsnippets():

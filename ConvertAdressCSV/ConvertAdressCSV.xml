@@ -19,6 +19,7 @@
 		<tgtGigasetName value="GigasetStefan.vcf" />
 		<tgtTSinusName value="TSinusStefan.vcf" />
 		<tgtGMXName value="GMXStefan.csv" />
-
+        <tgtSamsungKiesName value="SamsungKiesStefan.csv" />
+        <tgtSamsungAndroidVCFName value="SamsungAndroidStefan.vcf" />
 	</generic>
 </config>
