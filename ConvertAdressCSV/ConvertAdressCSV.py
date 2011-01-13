@@ -95,6 +95,8 @@ def readConfigFromXML(configFileName):
     inputDataDict["tgtSamsungKiesAbsName"]=os.path.join(tgtDirName, tgtSamsungKiesName)
     inputDataDict["tgtSamsungAndroidVCFName"]=os.path.join(tgtDirName, tgtSamsungAndroidVCFName)
     
+    for key,value in inputDataDict.iteritems():
+      logging.info(key +":\t" +value)
     return inputDataDict
 
 ############################################################################
