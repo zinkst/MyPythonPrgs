@@ -20,7 +20,7 @@ import logging.config
 from xml.dom import minidom
 from xml.dom import Node
 import codecs
-
+from datetime import date,timedelta
 
 
 ############################################################################
@@ -76,16 +76,10 @@ def readConfigFromXML(configFileName):
                     tgtSamsungKiesName = l2Node.getAttribute("value").encode(defaultEncoding)
                 if l2Node.nodeName == "tgtSamsungAndroidVCFName":
                     tgtSamsungAndroidVCFName = l2Node.getAttribute("value").encode(defaultEncoding)
+                if l2Node.nodeName == "tgtGeburtstageICSName":
+                    tgtGeburtstageICSName = l2Node.getAttribute("value").encode(defaultEncoding)
                                  
              
-    logging.debug("srcDirName = %s" % srcDirName) 
-    logging.debug("tgtDirName = %s" % tgtDirName) 
-    logging.debug("srcFilename = %s" % srcFilename) 
-    logging.debug("tgtThunderbirdName = %s" % tgtThunderbirdName) 
-    logging.debug("tgtGigasetName = %s" % tgtGigasetName) 
-    logging.debug("tgtTSinusName = %s" % tgtTSinusName) 
-    logging.debug("tgtGMXName = %s" % tgtGMXName) 
-    logging.debug("tgtSamsungKiesName = %s" % tgtSamsungKiesName) 
     
     inputDataDict["srcName"]=os.path.join(srcDirName, srcFilename)
     inputDataDict["tgtThunderbirdAbsName"]=os.path.join(tgtDirName, tgtThunderbirdName)
@@ -94,6 +88,7 @@ def readConfigFromXML(configFileName):
     inputDataDict["tgtGMXAbsName"]=os.path.join(tgtDirName, tgtGMXName)
     inputDataDict["tgtSamsungKiesAbsName"]=os.path.join(tgtDirName, tgtSamsungKiesName)
     inputDataDict["tgtSamsungAndroidVCFName"]=os.path.join(tgtDirName, tgtSamsungAndroidVCFName)
+    inputDataDict["tgtGeburtstageICSName"]=os.path.join(tgtDirName, tgtGeburtstageICSName)
     
     for key,value in inputDataDict.iteritems():
       logging.info(key +":\t" +value)
@@ -570,6 +565,77 @@ def writeSamsungAndroidVCard(tgtFileName):
     outfile.close()
   return 1
 
+###########################################################################
+def writeGeburtstagICS(tgtFileName):
+  try:
+    # nested try necessary for finally in Python 2.4
+    try:
+      #outfile = codecs.open(tgtFileName, "wb","latin1","xmlcharrefreplace")
+      outfile = codecs.open(tgtFileName, "wb", "utf8")
+      outfile.write(ICSHeader())
+      for curAddressDict in addressLines:
+        if (len(curAddressDict["Geburtsjahr"]) != 0):
+          try:
+            year=int(curAddressDict["Geburtsjahr"])
+            month=int(curAddressDict["Geburtsmonat"])
+            day=int(curAddressDict["Geburtstag"])
+          except:  
+             logging.info("error converting date %s %s %s from Name %s %s" % (curAddressDict["Geburtsjahr"],curAddressDict["Geburtsmonat"],curAddressDict["Geburtstag"],curAddressDict["Vorname"],curAddressDict["Nachname"])) 
+             continue 
+          birthday = date(year,month,day)
+          outfile.write('BEGIN:VEVENT'+lineEnd)
+          outfile.write('DTSTART;VALUE=DATE:'+birthday.strftime("%Y%m%d")+lineEnd)
+          outfile.write('DTEND;VALUE=DATE:'+(birthday+timedelta(1)).strftime("%Y%m%d")+lineEnd)
+          outfile.write('RRULE:FREQ=YEARLY;UNTIL=2100'+birthday.strftime("%m%d")+lineEnd)
+          outfile.write('CLASS:PRIVATE'+lineEnd)
+          outfile.write('SEQUENCE:0'+lineEnd)
+          outfile.write('STATUS:CONFIRMED'+lineEnd)
+          outfile.write('SUMMARY:'+ curAddressDict["Vorname"] + ' ' + curAddressDict["Nachname"] + ' (' + birthday.strftime("%Y") +') Geburtstag'+ lineEnd)
+          outfile.write('BEGIN:VALARM'+lineEnd)
+          outfile.write('ACTION:EMAIL'+lineEnd)
+          outfile.write('DESCRIPTION:This is an event reminder'+lineEnd)
+          outfile.write('SUMMARY:Alarm notification'+lineEnd)
+          outfile.write('ATTENDEE:mailto:zifts69@googlemail.com'+lineEnd)
+          outfile.write('TRIGGER:-P2D'+lineEnd)
+          outfile.write('END:VALARM'+lineEnd)
+          outfile.write('END:VEVENT'+lineEnd)
+          
+      outfile.write('END:VCALENDAR'+lineEnd)
+                   
+    except IOError:
+      logging.info("error opening file %s" % tgtFileName) 
+  finally:
+    outfile.close()
+  return 1
+
+def ICSHeader():
+  header='BEGIN:VCALENDAR' + lineEnd +\
+         'PRODID:-//Google Inc//Google Calendar 70.9054//EN' + lineEnd +\
+         'VERSION:2.0' + lineEnd +\
+         'CALSCALE:GREGORIAN' + lineEnd +\
+         'METHOD:PUBLISH' + lineEnd +\
+         'X-WR-CALNAME:Geburtstage' + lineEnd +\
+         'X-WR-TIMEZONE:Europe/Berlin' + lineEnd +\
+         'X-WR-CALDESC:' + lineEnd +\
+         'BEGIN:VTIMEZONE' + lineEnd +\
+         'TZID:Europe/Berlin' + lineEnd +\
+         'X-LIC-LOCATION:Europe/Berlin' + lineEnd +\
+         'BEGIN:DAYLIGHT' + lineEnd +\
+         'TZOFFSETFROM:+0100' + lineEnd +\
+         'TZOFFSETTO:+0200' + lineEnd +\
+         'TZNAME:CEST' + lineEnd +\
+         'DTSTART:19700329T020000' + lineEnd +\
+         'RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=-1SU' + lineEnd +\
+         'END:DAYLIGHT' + lineEnd +\
+         'BEGIN:STANDARD' + lineEnd +\
+         'TZOFFSETFROM:+0200' + lineEnd +\
+         'TZOFFSETTO:+0100' + lineEnd +\
+         'TZNAME:CET' + lineEnd +\
+         'DTSTART:19701025T030000' + lineEnd +\
+         'RRULE:FREQ=YEARLY;BYMONTH=10;BYDAY=-1SU' + lineEnd +\
+         'END:STANDARD' + lineEnd +\
+         'END:VTIMEZONE' + lineEnd
+  return header       
 
 
 ############################################################################
@@ -603,12 +669,13 @@ inputDataDict = {}
 #(srcName, tgtThunderbirdAbsName,tgtGigasetAbsName,tgtTSinusAbsName,tgtGMXAbsName,tgtSamsungKiesAbsName) = readConfigFromXML(configFileName)
 inputDataDict = readConfigFromXML(configFileName)
 processSrcFile(inputDataDict["srcName"])
-writeThunderbirdOutput(inputDataDict["tgtThunderbirdAbsName"])
-writeGigasetOutput(inputDataDict["tgtGigasetAbsName"])
-writeTSinusOutput(inputDataDict["tgtTSinusAbsName"])
-writeGMXCSVOutput(inputDataDict["tgtGMXAbsName"])
-writeSamsungKiesCSVOutput(inputDataDict["tgtSamsungKiesAbsName"])
-writeSamsungAndroidVCard(inputDataDict["tgtSamsungAndroidVCFName"])
+#writeThunderbirdOutput(inputDataDict["tgtThunderbirdAbsName"])
+#writeGigasetOutput(inputDataDict["tgtGigasetAbsName"])
+#writeTSinusOutput(inputDataDict["tgtTSinusAbsName"])
+#writeGMXCSVOutput(inputDataDict["tgtGMXAbsName"])
+#writeSamsungKiesCSVOutput(inputDataDict["tgtSamsungKiesAbsName"])
+#writeSamsungAndroidVCard(inputDataDict["tgtSamsungAndroidVCFName"])
+writeGeburtstagICS(inputDataDict["tgtGeburtstageICSName"])
 
 ###########################################################################
 def testsnippets():

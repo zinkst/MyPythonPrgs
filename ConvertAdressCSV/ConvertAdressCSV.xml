@@ -21,5 +21,6 @@
 		<tgtGMXName value="GMXStefan.csv" />
         <tgtSamsungKiesName value="SamsungKiesStefan.csv" />
         <tgtSamsungAndroidVCFName value="SamsungAndroidStefan.vcf" />
+        <tgtGeburtstageICSName value="GeburtstageStefan.ics" />
 	</generic>
 </config>
