@@ -18,6 +18,7 @@ import logging.config
 from xml.dom import minidom
 from xml.dom import Node
 import time
+import pyexiv2
 from stat import *
 
 
@@ -100,21 +101,103 @@ def readConfigFromXML(configFileName):
 ############################################################################
 def processFile(srcCompleteFileName, toolName, toolOptions):
     fileInfo = {}
-    fileInfo = parseFile(srcCompleteFileName)
+    #fileInfo = parseFileNameStatic(srcCompleteFileName)
+    getMetadata(srcCompleteFileName,fileInfo)
+    #fileInfo = parseFileNameLastUnderscore(srcCompleteFileName,fileInfo)
+    parseFileNamePapierBilder(srcCompleteFileName, fileInfo)
+    setXMPdcSubject(srcCompleteFileName, fileInfo)
     #exiftool -P -CreateDate='2009.05.06 06:47:00' -DateTimeDigitized='2009.05.06 06:47:00' -DateTimeOriginal=1995:05:24 -comment='Löwensteiner Berge' -UserComment='Löwensteiner Berge User' 1995_Nordeuropatour/1995A/1995A02_0524_Löwensteiner\ Berge.jpg
+    #setMetadata(srcCompleteFileName,fileInfo)
+    setFileDateToImageCreateDateTime(srcCompleteFileName, fileInfo)
+    
+############################################################################
+def writeExifWithExiftool(srcCompleteFileName, toolName, toolOptions):    
     originalDateTag='-DateTimeOriginal="%s:%s:%s"' % (fileInfo["YEAR"],fileInfo["MONTH"],fileInfo["DAY"])
     createDateTag='-CreateDate="%s"' % (fileInfo["FILEDATE"])
     commentTag='-comment="%s"' % (fileInfo["COMMENT"])
-    tags = originalDateTag + " " +createDateTag + " " + commentTag
+    if fileInfo["EXIF_DATETIME"] == "not set":
+      tags = originalDateTag + " " +createDateTag + " " + commentTag
+    else:
+      tags = commentTag
     command = '%s %s %s "%s"' % (toolName,toolOptions,tags,srcCompleteFileName)
     print command
-    os.system(command)
+    #os.system(command)
 
 ############################################################################
-def parseFile(srcCompleteFileName):
+def getMetadata(srcCompleteFileName,fileInfo):
+  metadata = pyexiv2.ImageMetadata(srcCompleteFileName)
+  metadata.read()
+  try:
+    exifDateTimeTag = metadata['Exif.Image.DateTime']
+    exifDateTimeString = exifDateTimeTag.value.strftime('%Y%m%d_%H%M%S')
+  except KeyError :
+    exifDateTimeString = "not set"  
+  fileInfo["EXIF_DATETIME"]=exifDateTimeString
+
+############################################################################
+def setMetadata(srcCompleteFileName,fileInfo):
+  metadata = pyexiv2.ImageMetadata(srcCompleteFileName)
+  metadata.read()
+  try:
+    key1 = 'Exif.Photo.UserComment'
+    key2 = 'Exif.Image.ImageDescription'
+    key3 = 'Xmp.dc.subject'
+    value = fileInfo["FILMID"]
+    metadata[key1] = value
+    metadata[key2] = value
+    metadata.write()
+  except KeyError :
+    logging.ERROR("Error writing " + fileInfo["COMMENT"] + " to file " + srcCompleteFileName)       
+  
+############################################################################
+def setXMPdcSubject(srcCompleteFileName,fileInfo):
+  metadata = pyexiv2.ImageMetadata(srcCompleteFileName)
+  metadata.read()
+  key1 = 'Xmp.dc.subject'
+  key_exists = 1
+  xmpSubjectList = []
+  try:
+    xmpSubjectList = metadata[key1].raw_value
+  except KeyError :
+    xmpSubjectList = []
+  appendValuesList = []
+  appendValuesList.append(fileInfo["FILMID"])
+  appendValuesList.append("Hausbau")
+  appendValuesList.append("test1")
+  
+  for curValue in appendValuesList:
+    if (curValue not in xmpSubjectList): 
+      logging.debug(curValue + " not in " + str(xmpSubjectList) )
+      xmpSubjectList.append(curValue)
+  try:  
+    metadata[key1] = xmpSubjectList
+    metadata.write()
+  except KeyError :
+      logging.ERROR("Error writing " + key_value + " to file " + srcCompleteFileName)       
+
+############################################################################
+def setFileDateToImageCreateDateTime(srcCompleteFileName,fileInfo):
+  metadata = pyexiv2.ImageMetadata(srcCompleteFileName)
+  metadata.read()
+  try:
+    exifDateTimeTag = metadata['Exif.Image.DateTime']
+    st = os.stat(srcCompleteFileName)
+    atime = st[ST_ATIME] #access time
+
+    exifDateTimetimetuple = exifDateTimeTag.value.timetuple()
+    exifDateTimetimestamp = int(time.mktime(exifDateTimetimetuple))
+    
+    #modify the file exifDateTimetimestamp
+    os.utime(srcCompleteFileName,(atime,exifDateTimetimestamp))
+  except KeyError :
+    "no dateteime tag in  " + srcCompleteFileName  
+  
+
+  
+############################################################################
+def parseFileNameStatic(srcCompleteFileName):
     # 1995A02_0524_Löwensteiner Berge.jpg
     fileNameOnly=os.path.basename(srcCompleteFileName)
-    fileInfo = {}
     fileInfo["YEAR"]=fileNameOnly[0:4]
     fileInfo["MONTH"]=fileNameOnly[8:10]
     fileInfo["DAY"]=fileNameOnly[10:12]
@@ -124,8 +207,28 @@ def parseFile(srcCompleteFileName):
     logging.info("fileInfo List")
     logging.info(fileInfo)
     return fileInfo
-    
 
+############################################################################
+def parseFileNameLastUnderscore(srcCompleteFileName,fileInfo):
+    # 1995A02_0524_Löwensteiner Berge.jpg
+    fileNameOnly=os.path.basename(srcCompleteFileName)
+    (id, sep, last) = fileNameOnly.rpartition('_')
+    (comment, sep, extension) = last.rpartition('.')
+    fileInfo["COMMENT"]=comment 
+    fileInfo["YEAR"]=id[0:4]
+    fileInfo["MONTH"]=id[8:10]
+    fileInfo["DAY"]=id[10:12]
+    fileCreationDate=os.stat(srcCompleteFileName)[ST_CTIME]
+    fileInfo["FILEDATE"]=time.strftime('%Y:%m:%d',time.localtime(fileCreationDate))   
+    logging.info(fileInfo)
+    return fileInfo
+
+############################################################################
+def parseFileNamePapierBilder(srcCompleteFileName,fileInfo):
+    fileNameOnly=os.path.basename(srcCompleteFileName)
+    (filmid, sep, extension) = fileNameOnly.rpartition('.')
+    fileInfo["FILMID"]=filmid
+    logging.info(fileInfo)
 ############################################################################
 # main starts here
 # global variables
