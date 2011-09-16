@@ -76,7 +76,7 @@ directoryNameOnOriginalRelativeToRootDir = src/Alben/Keane/Under The Iron Sea
       self.copiesDirRelativeToRootDir=os.path.dirname(self.copiesPathRelativeToRootDir)
       lengthCopiesOrigDir= len(self.ip['COPIES-ORIG-DIR'])
       self.copiesTgtDirRelativeToRootDir=os.path.join(self.ip['COPIES-TGT-DIR'],self.copiesDirRelativeToRootDir[lengthCopiesOrigDir+1:] )
-      self.copiesLinkDepthToBaseDir=self.copiesTgtDirRelativeToRootDir.count(os.sep) +1
+      self.copiesLinkDepthToBaseDir=self.copiesTgtDirRelativeToRootDir.count(os.sep) # +1
       self.dateiNameOnOriginalRelativeToRootDir=self.absDateiNameOnOriginal[self.ip["ROOT-DIR_LENGTH"]:]
       self.directoryNameOnOriginalRelativeToRootDir=os.path.dirname(self.dateiNameOnOriginalRelativeToRootDir)
       

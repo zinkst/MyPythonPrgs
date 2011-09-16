@@ -64,9 +64,9 @@ def readConfigFromXML(configFileName):
             for l2Node in l1Node.childNodes:
                 if l2Node.nodeName == "debug":
                     inputParams["DEBUG"] = l2Node.firstChild.nodeValue
-                if l2Node.nodeName == "searchPattern":
+                if l2Node.nodeName == "linkPrefix":
 #                    linkPrefix = l2Node.getAttribute("value").encode(defaultEncoding)
-                    inputParams["SEARCH-PATTERN"] = l2Node.getAttribute("value")
+                    linkPrefix = l2Node.getAttribute("value")
                                  
              
     
@@ -91,7 +91,7 @@ def createFileObjectsList(inputParams):
     logging.debug(" verzList = " + str(verzList) )
     logging.debug(" dateiListe = " + str(dateiListe))
     for datei in dateiListe:
-        resultRE2 = re.search('\.'+inputParams["SEARCH-PATTERN"],datei,re.IGNORECASE)
+        resultRE2 = re.search('\.jpg',datei,re.IGNORECASE)
         if resultRE2 != None:
             absCopiesOrigDateiName  = os.path.join(verz,datei)
             logging.debug(" absCopiesOrigDateiName = " + str(absCopiesOrigDateiName) )
