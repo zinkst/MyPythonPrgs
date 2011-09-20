@@ -161,7 +161,7 @@ def setDescriptionTags(srcCompleteFileName,fileInfo):
   
   
   metadata.write(True)
-  #  logging.ERROR("Error writing " + fileInfo["COMMENT"] + " to file " + srcCompleteFileName)       
+  logging.info("Sucessfully written " + fileInfo["COMMENT"] + " to file " + srcCompleteFileName)       
     
 
 ############################################################################
@@ -242,6 +242,47 @@ def parseFileNameStatic(srcCompleteFileName):
     logging.info(fileInfo)
     return fileInfo
 
+
+############################################################################
+#file:///links/Photos/2007/Gemeinsam/200701/20070107_01BesuchZinkUndRoehm.jpg
+#file:///links/Photos/2007/Gemeinsam/200704_Bellaria/20070401_1641_Bellaria_1.jpg
+def parseFileNameUniversal(srcCompleteFileName,fileInfo):
+    fileNameOnly=os.path.basename(srcCompleteFileName)
+    (id, sep, last) = fileNameOnly.partition('_')
+    (comment, sep, extension) = last.rpartition('.')
+    fileInfo["YEAR"]=int(id[0:4])
+    fileInfo["MONTH"]=int(id[4:6])
+    fileInfo["DAY"]=int(id[6:8])
+    fileCreationDate=os.stat(srcCompleteFileName)[ST_CTIME]
+    fileInfo["FILEDATE"]=time.strftime('%Y:%m:%d',time.localtime(fileCreationDate))
+    fileNameDT = datetime.datetime.today()
+    if (len(id)> 8):
+        fileInfo["HOUR"]=int(id[9:11])
+        fileInfo["MINUTE"]=int(id[11:13])
+        fileInfo["SECOND"]=int(id[13:15])
+        fileNameDT = datetime.datetime(fileInfo["YEAR"],fileInfo["MONTH"],fileInfo["DAY"],fileInfo["HOUR"],fileInfo["MINUTE"],fileInfo["SECOND"])
+    else:
+        fileNameDT = datetime.datetime(fileInfo["YEAR"],fileInfo["MONTH"],fileInfo["DAY"])
+    fileInfo["FILENAMEDT"]=fileNameDT
+        
+    commentjunks = comment.split('_')
+    if (fileNameOnly.count('_') == 1):
+        #20070107_01BesuchZinkUndRoehm.jpg
+        fileInfo["COMMENT"]=(commentjunks[0])[2:] 
+        fileInfo["DAYINDEX"]=int((commentjunks[0])[0:1])
+    elif (fileNameOnly.count('_') == 2):
+        #20070401_1641_Bellaria.jpg oder
+        #20040320_181000_Kind1WandZuKind2.jpg 
+        (timestamp,sep,comment2)=comment.rpartition('_')
+        fileInfo["COMMENT"]=commentjunks[1]    
+        fileInfo["FN_TIME"]=commentjunks[0]   
+    else:  
+        #20070401_1641_Bellaria_1.jpg oder
+        #20040320_181000_Kind1WandZuKind2_01.jpg
+        fileInfo["COMMENT"]=commentjunks[1]    
+        fileInfo["FN_TIME"]=commentjunks[0]   
+    logging.info(fileInfo)    
+
 ############################################################################
 def parseFileNameLastUnderscore(srcCompleteFileName,fileInfo):
     # 20040320_181000_Kind1WandZuKind2_01.jpg
@@ -253,18 +294,18 @@ def parseFileNameLastUnderscore(srcCompleteFileName,fileInfo):
     (id, sep, last) = fileNameOnly.rpartition('_')
     (comment, sep, extension) = last.rpartition('.')
     fileInfo["COMMENT"]=comment 
-    fileInfo["YEAR"]=int(id[0:4])
-    fileInfo["MONTH"]=int(id[4:6])
-    fileInfo["DAY"]=int(id[6:8])
-    fileInfo["HOUR"]=int(id[9:11])
-    fileInfo["MINUTE"]=int(id[11:13])
-    fileInfo["SECOND"]=int(id[13:15])
-    fileNameDT = datetime.datetime(fileInfo["YEAR"],fileInfo["MONTH"],fileInfo["DAY"],fileInfo["HOUR"],fileInfo["MINUTE"],fileInfo["SECOND"])
-    fileInfo["FILENAMEDT"]=fileNameDT
-    fileCreationDate=os.stat(srcCompleteFileName)[ST_CTIME]
-    fileInfo["FILEDATE"]=time.strftime('%Y:%m:%d',time.localtime(fileCreationDate))   
+#    fileInfo["YEAR"]=int(id[0:4])
+#    fileInfo["MONTH"]=int(id[4:6])
+#    fileInfo["DAY"]=int(id[6:8])
+#    fileInfo["HOUR"]=int(id[9:11])
+#    fileInfo["MINUTE"]=int(id[11:13])
+#    fileInfo["SECOND"]=int(id[13:15])
+#    fileNameDT = datetime.datetime(fileInfo["YEAR"],fileInfo["MONTH"],fileInfo["DAY"],fileInfo["HOUR"],fileInfo["MINUTE"],fileInfo["SECOND"])
+#    fileInfo["FILENAMEDT"]=fileNameDT
+#    fileCreationDate=os.stat(srcCompleteFileName)[ST_CTIME]
+#    fileInfo["FILEDATE"]=time.strftime('%Y:%m:%d',time.localtime(fileCreationDate))   
     
-    logging.info(fileInfo)
+    logging.debug(fileNameOnly + "=" +fileInfo["COMMENT"] )
     return fileInfo
 
 
@@ -293,9 +334,8 @@ def walkDir(inputParams):
     logging.debug(" DateiListe = " + str(DateiListe))
     for Datei in sorted(DateiListe):
       srcCompleteFileName  = os.path.join(Verz,Datei)
-      logging.debug(" srcCompleteFileName  = " + srcCompleteFileName)
       if fnmatch.fnmatch(srcCompleteFileName, inputParams["fileFilter"]):
-        #tgtCompleteFileName = findTGTFileName(srcCompleteFileName, inputParams["srcDirName"],inputParams["tgtDirName"])
+        logging.debug(" srcCompleteFileName  = " + srcCompleteFileName)
         processFile(srcCompleteFileName, inputParams)
 
 ############################################################################
@@ -304,12 +344,13 @@ def processFile(srcCompleteFileName, inputParams):
     fileInfo = {}
     #fileInfo = parseFileNameStatic(srcCompleteFileName)
     #getMetadata(srcCompleteFileName,fileInfo)
-    parseFileNameLastUnderscore(srcCompleteFileName,fileInfo)
+    #parseFileNameLastUnderscore(srcCompleteFileName,fileInfo)
+    parseFileNameUniversal(srcCompleteFileName,fileInfo)
     #parseFileNamePapierBilder(srcCompleteFileName, fileInfo)
-    #setDescriptionTags(srcCompleteFileName, fileInfo)
+    setDescriptionTags(srcCompleteFileName, fileInfo)
     #exiftool -P -CreateDate='2009.05.06 06:47:00' -DateTimeDigitized='2009.05.06 06:47:00' -DateTimeOriginal=1995:05:24 -comment='Löwensteiner Berge' -UserComment='Löwensteiner Berge User' 1995_Nordeuropatour/1995A/1995A02_0524_Löwensteiner\ Berge.jpg
     #setKeywordTags(srcCompleteFileName,fileInfo)
-    setFileDateToImageDigitizedDateTime(srcCompleteFileName, fileInfo)
+    #setFileDateToImageDigitizedDateTime(srcCompleteFileName, fileInfo)
     #setImageMetadataDateTimeFromFileNameTimeStamp(srcCompleteFileName, fileInfo)
 
 
@@ -335,9 +376,9 @@ inputParams = readConfigFromXML(configFileName)
 
 if inputParams["useList"]:
   walkList(inputParams) 
-  print ("successfully transfered %s " % inputParams["srcDirName"])
+  print ("successfully transfered %s " % inputParams["fileList"])
 else:
   walkDir(inputParams) 
-  print ("successfully transfered %s " % inputParams["fileList"])
+  print ("successfully transfered %s " % inputParams["srcDirName"])
 
 
