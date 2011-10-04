@@ -161,34 +161,110 @@ def setDescriptionTags(srcCompleteFileName,fileInfo):
   
   
   metadata.write(True)
-  logging.info("Sucessfully written " + fileInfo["COMMENT"] + " to file " + srcCompleteFileName)       
+  #  logging.ERROR("Error writing " + fileInfo["COMMENT"] + " to file " + srcCompleteFileName)       
     
+############################################################################
+def setHausbauKeywordTags(srcCompleteFileName,fileInfo):
+  metadata = pyexiv2.ImageMetadata(srcCompleteFileName)
+  metadata.read()
+  
+  searchFilmkeys = [ 'Xmp.lr.hierarchicalSubject','Xmp.dc.subject']
+  setkeys = ['Xmp.dc.subject', 'Xmp.digiKam.TagsList', 'Iptc.Application2.Keywords']
+  tagsList = []
+  filmid = ''   
+  for curKey in searchFilmkeys:
+    try:
+      tagsList = metadata[curKey].raw_value
+    except KeyError :
+      tagsList = []
+    for curValue in tagsList:
+      if re.search('Film[0..9]*',curValue) : 
+        filmid = curValue
+        logging.debug("Tag " + curValue + " contains string Film[0..9]" )
+        break
+  
+  for curKey in setkeys:
+    # get current list of tags
+    try:
+      tagsList = metadata[curKey].raw_value
+    except KeyError :
+      tagsList = []
+    appendValuesList = ['Hausbau']
+    
+    if filmid != '' :
+      if curKey == 'Xmp.digiKam.TagsList':  
+        appendValuesList.append("Analogbild/Filmenegativ/"+filmid)
+      else:
+        appendValuesList.append(filmid)
+    try:  
+        metadata[curKey] = appendValuesList     
+    except KeyError :
+      logging.ERROR("Error modifying " + curKey + " in file " + srcCompleteFileName)       
+
+  metadata.write(True)
+
 
 ############################################################################
 def setKeywordTags(srcCompleteFileName,fileInfo):
   metadata = pyexiv2.ImageMetadata(srcCompleteFileName)
   metadata.read()
-  key1 = 'Xmp.dc.subject'
-  key_exists = 1
-  xmpSubjectList = []
-  try:
-    xmpSubjectList = metadata[key1].raw_value
-  except KeyError :
-    xmpSubjectList = []
-  appendValuesList = []
-  appendValuesList.append(fileInfo["FILMID"])
-  appendValuesList.append("Hausbau")
-  #appendValuesList.append("test1")
-  
-  for curValue in appendValuesList:
-    if (curValue not in xmpSubjectList): 
-      logging.debug(curValue + " not in " + str(xmpSubjectList) )
-      xmpSubjectList.append(curValue)
-  try:  
-    metadata[key1] = xmpSubjectList
-    metadata.write(True)
-  except KeyError :
-      logging.ERROR("Error writing " + key_value + " to file " + srcCompleteFileName)       
+  keys = [ 'Xmp.dc.subject', 'Xmp.digiKam.TagsList', 'Iptc.Application2.Keywords']
+  #keys = [ 'Xmp.digiKam.TagsList']
+  subjectList = []
+  for curKey in keys:
+    # get current list of tags
+    try:
+      subjectList = metadata[curKey].raw_value
+    except KeyError :
+      subjectList = []
+    appendValuesList = []
+    
+    if curKey == 'Xmp.digiKam.TagsList':  
+      #appendValuesList.append("Analogbild/Papierbild/"+fileInfo["PHOTOID"][0:4]+"/"+fileInfo["PHOTOID"])
+      appendValuesList.append("Analogbild/Diapositiv/"+fileInfo["PHOTOID"][0:4]+"/"+fileInfo["PHOTOID"])
+      #appendValuesList.append("Analogbild/Filmnegativ/1997")
+    else:
+       appendValuesList.append(fileInfo["PHOTOID"])
+    
+    for curValue in appendValuesList:
+      if (curValue not in subjectList): 
+        logging.debug(curValue + " not in " + str(subjectList) )
+        subjectList.append(curValue)
+    try:  
+      metadata[curKey] = subjectList
+    except KeyError :
+        logging.ERROR("Error writing " + curValue + " to file " + srcCompleteFileName)       
+
+  metadata.write(True)
+
+
+############################################################################
+def fixKeywordTags(srcCompleteFileName,fileInfo):
+  metadata = pyexiv2.ImageMetadata(srcCompleteFileName)
+  metadata.read()
+  #keys = [ 'Xmp.dc.subject', 'Xmp.digiKam.TagsList', 'Iptc.Application2.Keywords']
+  keys = [ 'Xmp.digiKam.TagsList']
+  subjectList = []
+  for curKey in keys:
+    # get current list of tags
+    try:
+      subjectList = metadata[curKey].raw_value
+    except KeyError :
+      subjectList = []
+    searchString = "Filmnegativ"
+    
+    for curValue in subjectList:
+      if (searchString  in curValue): 
+        subjectList.remove(curValue)
+        newValue = curValue.replace(searchString,"Filmnegativ/Hausbau")
+        subjectList.append(newValue)
+        logging.debug("found "+searchString+" in "+curValue+" new Value is "+newValue)
+        try:  
+          metadata[curKey] = subjectList
+          metadata.write(True)
+        except KeyError :
+            logging.ERROR("Error writing " + curValue + " to file " + srcCompleteFileName)       
+
 
 ############################################################################
 def setFileDateToImageDigitizedDateTime(srcCompleteFileName,fileInfo):
@@ -207,6 +283,26 @@ def setFileDateToImageDigitizedDateTime(srcCompleteFileName,fileInfo):
     os.utime(srcCompleteFileName,(atime,exifDateTimetimestamp))
   except KeyError :
     "no dateteime tag in  " + srcCompleteFileName  
+
+
+############################################################################
+def setImageMetadataDateTimeToStaticIncreasingValue(srcCompleteFileName,fileInfo):
+  metadata = pyexiv2.ImageMetadata(srcCompleteFileName)
+  metadata.read()
+  keys = [ 'Exif.Image.DateTime' , 'Xmp.xmp.CreateDate', 'Iptc.Application2.DateCreated']
+  newDate=fileInfo["NEWSTATICTIME"]
+  logging.debug("setting timestamp "+ str(newDate) + " in file " + os.path.basename(srcCompleteFileName) )
+  for curKey in keys:
+    try:
+      if (curKey == 'Iptc.Application2.DateCreated'):
+        metadata[curKey] =  [newDate]
+#     elif (curKey == 'Iptc.Application2.Caption'):
+#        metadata[curKey] = [ newDate ]
+      else:
+        metadata[curKey] = newDate
+    except KeyError,TypeError :
+      logging.ERROR("Error writing " + fileInfo["FILENAMEDT"] + "in tag " + curKey + " to file " + srcCompleteFileName)       
+  metadata.write(True)
 
 ############################################################################
 def setImageMetadataDateTimeFromFileNameTimeStamp(srcCompleteFileName,fileInfo):
@@ -241,7 +337,6 @@ def parseFileNameStatic(srcCompleteFileName):
     logging.info("fileInfo List")
     logging.info(fileInfo)
     return fileInfo
-
 
 ############################################################################
 #file:///links/Photos/2007/Gemeinsam/200701/20070107_01BesuchZinkUndRoehm.jpg
@@ -283,6 +378,9 @@ def parseFileNameUniversal(srcCompleteFileName,fileInfo):
         fileInfo["FN_TIME"]=commentjunks[0]   
     logging.info(fileInfo)    
 
+
+
+
 ############################################################################
 def parseFileNameLastUnderscore(srcCompleteFileName,fileInfo):
     # 20040320_181000_Kind1WandZuKind2_01.jpg
@@ -294,18 +392,18 @@ def parseFileNameLastUnderscore(srcCompleteFileName,fileInfo):
     (id, sep, last) = fileNameOnly.rpartition('_')
     (comment, sep, extension) = last.rpartition('.')
     fileInfo["COMMENT"]=comment 
-#    fileInfo["YEAR"]=int(id[0:4])
-#    fileInfo["MONTH"]=int(id[4:6])
-#    fileInfo["DAY"]=int(id[6:8])
-#    fileInfo["HOUR"]=int(id[9:11])
-#    fileInfo["MINUTE"]=int(id[11:13])
-#    fileInfo["SECOND"]=int(id[13:15])
-#    fileNameDT = datetime.datetime(fileInfo["YEAR"],fileInfo["MONTH"],fileInfo["DAY"],fileInfo["HOUR"],fileInfo["MINUTE"],fileInfo["SECOND"])
-#    fileInfo["FILENAMEDT"]=fileNameDT
-#    fileCreationDate=os.stat(srcCompleteFileName)[ST_CTIME]
-#    fileInfo["FILEDATE"]=time.strftime('%Y:%m:%d',time.localtime(fileCreationDate))   
+    fileInfo["YEAR"]=int(id[0:4])
+    fileInfo["MONTH"]=int(id[4:6])
+    fileInfo["DAY"]=int(id[6:8])
+    fileInfo["HOUR"]=int(id[9:11])
+    fileInfo["MINUTE"]=int(id[11:13])
+    fileInfo["SECOND"]=int(id[13:15])
+    fileNameDT = datetime.datetime(fileInfo["YEAR"],fileInfo["MONTH"],fileInfo["DAY"],fileInfo["HOUR"],fileInfo["MINUTE"],fileInfo["SECOND"])
+    fileInfo["FILENAMEDT"]=fileNameDT
+    fileCreationDate=os.stat(srcCompleteFileName)[ST_CTIME]
+    fileInfo["FILEDATE"]=time.strftime('%Y:%m:%d',time.localtime(fileCreationDate))   
     
-    logging.debug(fileNameOnly + "=" +fileInfo["COMMENT"] )
+    logging.info(fileInfo)
     return fileInfo
 
 
@@ -317,6 +415,24 @@ def parseFileNamePapierBilder(srcCompleteFileName,fileInfo):
     logging.info(fileInfo)
 
 ############################################################################
+def parseFileNameDiaScanBilder(srcCompleteFileName,fileInfo):
+    # 1995A01_0524_Abschiedsbild mit Mama.jpg
+    # 1999A01.jpg
+    # 1999A02_AbfahrtInDerFinkenstrasse.jpg
+    fileNameOnly=os.path.basename(srcCompleteFileName)
+    (nameWithoutExtension, sep, extension) = fileNameOnly.rpartition('.')
+    nameChunks = nameWithoutExtension.split('_')
+    fileInfo["PHOTOID"]=nameChunks[0]
+    if len(nameChunks) > 2 :
+      fileInfo["COMMENT"]=nameChunks[2]
+    elif len(nameChunks) == 2 :  
+      fileInfo["COMMENT"]=nameChunks[1]
+    else:  
+      fileInfo["COMMENT"]=''
+    logging.info(fileInfo)
+
+
+############################################################################
 def walkList(inputParams):
   listName=inputParams["fileList"]
   logging.info("listName = "+ listName)
@@ -325,6 +441,8 @@ def walkList(inputParams):
   for line in fileinput.input(listName):
     if line.startswith("file://"):
       line = line[7:].rstrip()
+    inputParams["NEWSTATICTIME"]=inputParams["NEWDATE"]
+    inputParams["NEWDATE"]=inputParams["NEWDATE"]+inputParams["TIMEDELTA"]
     processFile(line,inputParams)
     
 ############################################################################
@@ -333,26 +451,33 @@ def walkDir(inputParams):
     logging.debug(" VerzList = " + str(VerzList) )
     logging.debug(" DateiListe = " + str(DateiListe))
     for Datei in sorted(DateiListe):
+      inputParams["NEWSTATICTIME"]=inputParams["NEWDATE"]
+      inputParams["NEWDATE"]=inputParams["NEWDATE"]+inputParams["TIMEDELTA"]
       srcCompleteFileName  = os.path.join(Verz,Datei)
+      logging.debug(" srcCompleteFileName  = " + srcCompleteFileName)
       if fnmatch.fnmatch(srcCompleteFileName, inputParams["fileFilter"]):
-        logging.debug(" srcCompleteFileName  = " + srcCompleteFileName)
+        #tgtCompleteFileName = findTGTFileName(srcCompleteFileName, inputParams["srcDirName"],inputParams["tgtDirName"])
         processFile(srcCompleteFileName, inputParams)
 
 ############################################################################
 def processFile(srcCompleteFileName, inputParams):
     logging.debug("Processing file "+ srcCompleteFileName)
     fileInfo = {}
+    fileInfo["NEWSTATICTIME"]=inputParams["NEWSTATICTIME"]
+    
     #fileInfo = parseFileNameStatic(srcCompleteFileName)
     #getMetadata(srcCompleteFileName,fileInfo)
     #parseFileNameLastUnderscore(srcCompleteFileName,fileInfo)
-    parseFileNameUniversal(srcCompleteFileName,fileInfo)
+    #parseFileNameDiaScanBilder(srcCompleteFileName, fileInfo)
     #parseFileNamePapierBilder(srcCompleteFileName, fileInfo)
-    setDescriptionTags(srcCompleteFileName, fileInfo)
+    #setDescriptionTags(srcCompleteFileName, fileInfo)
     #exiftool -P -CreateDate='2009.05.06 06:47:00' -DateTimeDigitized='2009.05.06 06:47:00' -DateTimeOriginal=1995:05:24 -comment='Löwensteiner Berge' -UserComment='Löwensteiner Berge User' 1995_Nordeuropatour/1995A/1995A02_0524_Löwensteiner\ Berge.jpg
     #setKeywordTags(srcCompleteFileName,fileInfo)
+    #setImageMetadataDateTimeToStaticIncreasingValue(srcCompleteFileName, fileInfo)
+    #setHausbauKeywordTags(srcCompleteFileName, fileInfo)
     #setFileDateToImageDigitizedDateTime(srcCompleteFileName, fileInfo)
     #setImageMetadataDateTimeFromFileNameTimeStamp(srcCompleteFileName, fileInfo)
-
+    fixKeywordTags(srcCompleteFileName, fileInfo)
 
 ############################################################################
 # main starts here
@@ -374,6 +499,9 @@ inputParams={}
 
 inputParams = readConfigFromXML(configFileName)
 
+inputParams["NEWDATE"] = datetime.datetime(2000,3,12,12,0,0)
+inputParams["TIMEDELTA"] = datetime.timedelta(0,0,0,0,10,0) 
+
 if inputParams["useList"]:
   walkList(inputParams) 
   print ("successfully transfered %s " % inputParams["fileList"])
@@ -381,4 +509,6 @@ else:
   walkDir(inputParams) 
   print ("successfully transfered %s " % inputParams["srcDirName"])
 
-
+xmpTags = [ 'Xmp.xmp.CreatorTool', 'Xmp.xmp.CreateDate', 'Xmp.xmp.MetadataDate', 'Xmp.xmp.ModifyDate', 'Xmp.tiff.Software', 'Xmp.tiff.DateTime', 'Xmp.tiff.ImageDescription', 'Xmp.exif.DateTimeOriginal', 'Xmp.exif.UserComment', 'Xmp.photoshop.DateCreated', 'Xmp.dc.subject', 'Xmp.dc.description', 'Xmp.digiKam.CaptionsAuthorNames', 'Xmp.digiKam.CaptionsDateTimeStamps', 'Xmp.digiKam.TagsList', 'Xmp.MicrosoftPhoto.LastKeywordXMP', 'Xmp.lr.hierarchicalSubject'] 
+iptcTags = ['Iptc.Application2.Program', 'Iptc.Application2.ProgramVersion', 'Iptc.Application2.Caption', 'Iptc.Application2.DateCreated', 'Iptc.Application2.TimeCreated', 'Iptc.Application2.Keywords']
+exifTags = ['Exif.Image.ProcessingSoftware', 'Exif.Image.XResolution', 'Exif.Image.YResolution', 'Exif.Image.ResolutionUnit', 'Exif.Image.Software', 'Exif.Image.DateTime', 'Exif.Image.YCbCrPositioning', 'Exif.Image.ExifTag', 'Exif.Photo.ExifVersion', 'Exif.Photo.DateTimeOriginal', 'Exif.Photo.DateTimeDigitized', 'Exif.Photo.ComponentsConfiguration', 'Exif.Photo.UserComment', 'Exif.Photo.FlashpixVersion', 'Exif.Photo.ColorSpace']
