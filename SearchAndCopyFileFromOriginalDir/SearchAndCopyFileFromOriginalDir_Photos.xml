@@ -5,24 +5,37 @@
 		<tgtDirName value="D:\persdata\Stefan\OpenOffice\Adressdatei\" />
 	</win32>
 	<linux2>
-		<!-- productionData --> 
+		<!-- productionData 
+		     you can change the search pattern in function createFileObjectsList in python source
+		     -->
 		<ROOT-DIR value="/links/Photos/" />
 		<ORIGINALS-DIRS>
-		  <el>2008</el>
+		  <el>2013</el>
+		  <el>2012</el>
+		  <el>2011</el>
+		  <el>2010</el>
 		  <el>2009</el>
+		  <el>2008</el>
 		  <el>2007</el>
+		  <el>2006</el>
+		  <el>2005</el>
+		  <el>2004</el>
+		  <el>2003</el>
+		  <el>2002</el>
+		  <el>2001</el>
+		  <!-- <el>Alben</el>  -->
 		</ORIGINALS-DIRS> 
-<!--		<COPIES-ORIG-DIR>car/008MP3CAR_2002</COPIES-ORIG-DIR> 
-		<COPIES-TGT-DIR>car_new/008MP3CAR_2002</COPIES-TGT-DIR>
--->		<COPIES-ORIG-DIR>Entwickeln/1_bisherigeBestellungen/2009</COPIES-ORIG-DIR> 
-		<COPIES-TGT-DIR>Entwickeln_links/1_bisherigeBestellungen/2009</COPIES-TGT-DIR>
+		<COPIES-ORIG-DIR>Entwickeln/1_bisherigeBestellungen</COPIES-ORIG-DIR> 
+		<COPIES-TGT-DIR>Entwickeln_linksabs</COPIES-TGT-DIR>
+		
+		 
 		<!-- productionData 2 
 		<ROOT-DIR value="/home/zinks/Stefan/myPrg/MyPythonPrgs/SearchAndCopyFileFromOriginalDir/testdata/" />
 		<ORIGINALS-DIR>src/Alben</ORIGINALS-DIR> 
 		<COPIES-ORIG-DIR>src/car</COPIES-ORIG-DIR> 
 		<COPIES-TGT-DIR>test/car_new</COPIES-TGT-DIR>
 		--> 
-		<!-- testData  			
+		<!-- testData 			
 		<ROOT-DIR value="/home/zinks/Stefan/myPrg/MyPythonPrgs/SearchAndCopyFileFromOriginalDir/testdata/" />
 		<ORIGINALS-DIRS>
 		  <el>src/Meine CDs</el>
@@ -30,11 +43,10 @@
 		</ORIGINALS-DIRS> 
 		<COPIES-ORIG-DIR>test/car</COPIES-ORIG-DIR> 
 		<COPIES-TGT-DIR>test/car_new</COPIES-TGT-DIR> 
-		-->
+		--> 
 	</linux2>
 	<generic>
  		<!-- productionData -->
-		<searchPattern value="jpg" />
 	    <debug>false</debug>
 		<!-- testData -->
 			
