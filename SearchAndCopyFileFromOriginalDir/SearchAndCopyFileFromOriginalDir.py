@@ -105,7 +105,7 @@ def createFileObjectsList(inputParams):
   return (fileObjects,notFoundFileObjects)
 
 ###########################################################################
-def processFileObjects(fileObject):
+def processFileObject(fileObject):
   """
 'ROOT-DIR': '/home/zinks/Stefan/myPrg/MyPythonPrgs/SearchAndCopyFileFromOriginalDir/testdata/'
 'ORIGINALS-DIRS': u'src/Alben'
@@ -139,11 +139,14 @@ directoryNameOnOriginalRelativeToRootDir = src/Alben/Rammstein/Rosenrot
   
   newRelLink=os.path.join("../"*fileObject.copiesLinkDepthToBaseDir,fileObject.dateiNameOnOriginalRelativeToRootDir)
   logging.debug("checking os.symlink("+newRelLink+","+fileObject.fileBaseName+")")
+  newAbsLink=os.path.join(fileObject.ip['ROOT-DIR'],fileObject.dateiNameOnOriginalRelativeToRootDir)
+  logging.debug("checking os.symlink("+newAbsLink+","+fileObject.fileBaseName+")")
   if  not os.path.exists(fileObject.fileBaseName):
     logging.debug("calling os.symlink("+newRelLink+","+fileObject.fileBaseName+")")
+    logging.debug("calling os.symlink("+newAbsLink+","+fileObject.fileBaseName+")")
     if inputParams["DEBUG"] != "true": 
-      os.symlink(newRelLink,fileObject.fileBaseName)
-
+      #os.symlink(newRelLink,fileObject.fileBaseName)
+      os.symlink(newAbsLink,fileObject.fileBaseName)  
 ############################################################################
 def writeNotFoundFilesToFile(notFoundFileObjects):
     try:
@@ -187,7 +190,7 @@ inputParams = readConfigFromXML(configFileName)
 inputParams = extendInputParams(inputParams)
 (fileObjects,notFoundFileObjects) = createFileObjectsList(inputParams)
 for curFileObj in fileObjects:
-  processFileObjects(curFileObj)
+  processFileObject(curFileObj)
 writeNotFoundFilesToFile(notFoundFileObjects)
 
 
