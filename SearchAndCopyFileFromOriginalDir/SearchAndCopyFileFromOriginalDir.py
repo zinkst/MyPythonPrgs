@@ -15,7 +15,7 @@ import re
 import string
 import logging
 import logging.config 
-#from xml import dom
+# from xml import dom
 from xml.dom import minidom
 from xml.dom import Node
 import codecs
@@ -23,15 +23,15 @@ import json
 import shutil
 from FileObject import FileObject
 from functions import initLogger
-#import scriptutil as SU
+# import scriptutil as SU
     
 
 ###########################################################################
 def extendInputParams(inputParams):
 #  inputParams["ABS-ORIGINALS-DIR"]=os.path.join(inputParams["ROOT-DIR"],inputParams["ORIGINALS-DIRS"])
-  inputParams["ABS-COPIES-ORIG-DIR"]=os.path.join(inputParams["ROOT-DIR"],inputParams["COPIES-ORIG-DIR"])
-  inputParams["ABS-COPIES-TGT-DIR"]=os.path.join(inputParams["ROOT-DIR"],inputParams["COPIES-TGT-DIR"])
-  inputParams["ROOT-DIR_LENGTH"]=len(inputParams["ROOT-DIR"])
+  inputParams["ABS-COPIES-ORIG-DIR"] = os.path.join(inputParams["ROOT-DIR"], inputParams["COPIES-ORIG-DIR"])
+  inputParams["ABS-COPIES-TGT-DIR"] = os.path.join(inputParams["ROOT-DIR"], inputParams["COPIES-TGT-DIR"])
+  inputParams["ROOT-DIR_LENGTH"] = len(inputParams["ROOT-DIR"])
   logging.debug("extended inputParams = \n%s" % inputParams) 
   return inputParams
 
@@ -39,22 +39,34 @@ def extendInputParams(inputParams):
 def createFileObjectsList(inputParams):
   fileObjects = []
   notFoundFileObjects = []
+  originalFilesDict = {}
+  # create dictionary with original files to improve performance
+  for relDirName in inputParams["ORIGINALS-DIRS"]:
+      dirName = os.path.join(inputParams["ROOT-DIR"], relDirName)
+      logging.debug(" dirName = " + dirName)
+      for dir, dirList, fileList in os.walk (dirName):
+  #      logging.debug(" dirList = " + str(dirList) )
+  #      logging.debug(" fileList = " + str(fileList))
+        for file in fileList:
+            originalFilesDict[os.path.basename(file)] = os.path.join(dir, file)
+  
+  #iterate over source files 
   for verz, verzList, dateiListe in os.walk (inputParams["ABS-COPIES-ORIG-DIR"]):
-    logging.debug(" verzList = " + str(verzList) )
-    logging.debug(" dateiListe = " + str(dateiListe))
-    for datei in dateiListe:
-        resultRE2 = re.search('\.jpg',datei,re.IGNORECASE)
-        if resultRE2 != None:
-            absCopiesOrigDateiName  = os.path.join(verz,datei)
-            logging.debug(" absCopiesOrigDateiName = " + str(absCopiesOrigDateiName) )
-            newFile = FileObject()
-            FileObject.initialize(newFile,inputParams,absCopiesOrigDateiName)
-            logging.info(FileObject.printOut(newFile))
-            if newFile.foundOriginal == False:
-              notFoundFileObjects.append(newFile) 
-            else:
-              fileObjects.append(newFile) 
-  return (fileObjects,notFoundFileObjects)
+      logging.debug(" verzList = " + str(verzList))
+      logging.debug(" dateiListe = " + str(dateiListe))
+      for datei in dateiListe:
+          resultRE2 = re.search('\.jpg', datei, re.IGNORECASE)
+          if resultRE2 != None:
+              absCopiesOrigDateiName = os.path.join(verz, datei)
+              logging.debug(" absCopiesOrigDateiName = " + str(absCopiesOrigDateiName))
+              newFile = FileObject()
+              FileObject.initialize(newFile, inputParams, absCopiesOrigDateiName,originalFilesDict)
+              logging.info(FileObject.printOut(newFile))
+              if newFile.foundOriginal == False:
+                notFoundFileObjects.append(newFile) 
+              else:
+                fileObjects.append(newFile) 
+  return (fileObjects, notFoundFileObjects)
 
 ###########################################################################
 def processFileObject(fileObject):
@@ -77,39 +89,39 @@ dateiNameOnOriginalRelativeToRootDir = src/Alben/Rammstein/Rosenrot/03_Rosenrot.
 directoryNameOnOriginalRelativeToRootDir = src/Alben/Rammstein/Rosenrot
   """
   
-  logging.debug("calling   os.chdir("+fileObject.ip['ROOT-DIR']+")" )
-  #os.chdir(fileObject.ROOT-DIR)
-  newTgtDir = os.path.join(fileObject.ip['ROOT-DIR'],fileObject.copiesTgtDirRelativeToRootDir)
+  logging.debug("calling   os.chdir(" + fileObject.ip['ROOT-DIR'] + ")")
+  # os.chdir(fileObject.ROOT-DIR)
+  newTgtDir = os.path.join(fileObject.ip['ROOT-DIR'], fileObject.copiesTgtDirRelativeToRootDir)
   if  not os.path.exists(newTgtDir):
-    logging.debug("calling   os.makedirs("+newTgtDir+",'0775')")
+    logging.debug("calling   os.makedirs(" + newTgtDir + ",'0775')")
     if inputParams["SIMULATE"] == False: 
-      os.makedirs(newTgtDir )#,'0775')
+      os.makedirs(newTgtDir)  # ,'0775')
     
-  logging.debug("calling os.chdir("+newTgtDir+")")
+  logging.debug("calling os.chdir(" + newTgtDir + ")")
   if inputParams["SIMULATE"] == False: 
     os.chdir(newTgtDir)
   
-  newRelLink=os.path.join("../"*fileObject.copiesLinkDepthToBaseDir,fileObject.dateiNameOnOriginalRelativeToRootDir)
-  logging.debug("checking os.symlink("+newRelLink+","+fileObject.fileBaseName+")")
-  newAbsLink=os.path.join(fileObject.ip['ROOT-DIR'],fileObject.dateiNameOnOriginalRelativeToRootDir)
-  logging.debug("checking os.symlink("+newAbsLink+","+fileObject.fileBaseName+")")
+  newRelLink = os.path.join("../"*fileObject.copiesLinkDepthToBaseDir, fileObject.dateiNameOnOriginalRelativeToRootDir)
+  logging.debug("checking os.symlink(" + newRelLink + "," + fileObject.fileBaseName + ")")
+  newAbsLink = os.path.join(fileObject.ip['ROOT-DIR'], fileObject.dateiNameOnOriginalRelativeToRootDir)
+  logging.debug("checking os.symlink(" + newAbsLink + "," + fileObject.fileBaseName + ")")
   if  not os.path.exists(fileObject.fileBaseName):
-    logging.debug("calling os.symlink("+newRelLink+","+fileObject.fileBaseName+")")
-    logging.debug("calling os.symlink("+newAbsLink+","+fileObject.fileBaseName+")")
+    logging.debug("calling os.symlink(" + newRelLink + "," + fileObject.fileBaseName + ")")
+    logging.debug("calling os.symlink(" + newAbsLink + "," + fileObject.fileBaseName + ")")
     if inputParams["SIMULATE"] == False: 
-      #os.symlink(newRelLink,fileObject.fileBaseName)
-      os.symlink(newAbsLink,fileObject.fileBaseName)  
+      # os.symlink(newRelLink,fileObject.fileBaseName)
+      os.symlink(newAbsLink, fileObject.fileBaseName)  
 
 ############################################################################
 def writeNotFoundFilesToFile(notFoundFileObjects):
     try:
-        #outfile = codecs.open(, "wb","latin1","xmlcharrefreplace")
-        outFileName=os.path.join(inputParams['ROOT-DIR'],inputParams['COPIES-ORIG-DIR'],"notFoundFiles.txt" )
+        # outfile = codecs.open(, "wb","latin1","xmlcharrefreplace")
+        outFileName = os.path.join(inputParams['ROOT-DIR'], inputParams['COPIES-ORIG-DIR'], "notFoundFiles.txt")
         outfile = codecs.open(outFileName, "wb", "utf8")
         try:
           for curNotFoundFileObj in notFoundFileObjects:
-            outLine=curNotFoundFileObj.absCopiesOrigDateiName
-            logging.info("outLine="+outLine)
+            outLine = curNotFoundFileObj.absCopiesOrigDateiName
+            logging.info("outLine=" + outLine)
             outfile.write(outLine + '\n')
         finally:
             outfile.close()
@@ -119,30 +131,17 @@ def writeNotFoundFilesToFile(notFoundFileObjects):
 
 #############################################################################################
 def processNotFoundFile(fileObject):
-    """
-    fileBaseName = 20100320100413FamilieZinkbeimPhotograph.jpg
-    absCopiesOrigDateiName = /links/persdata/Stefan/myPrg/MyPythonPrgs/SearchAndCopyFileFromOriginalDir/testdata/Photo/src/1_bisherigeBestellungen/2010/20101107_FotobuchItalienUndSchweden/FotobuchBilder/20100320100413FamilieZinkbeimPhotograph.jpg
-    copiesPathRelativeToRootDir = src/1_bisherigeBestellungen/2010/20101107_FotobuchItalienUndSchweden/FotobuchBilder/20100320100413FamilieZinkbeimPhotograph.jpg
-    copiesDirRelativeToRootDir = src/1_bisherigeBestellungen/2010/20101107_FotobuchItalienUndSchweden/FotobuchBilder
-    copiesTgtDirRelativeToRootDir = Entwickeln_Not_Found_Files_Dir/1_bisherigeBestellungen/2010/20101107_FotobuchItalienUndSchweden/FotobuchBilder
-    copiesLinkDepthToBaseDir = 0
-    absDateiNameOnOriginal = 
-    dateiNameOnOriginalRelativeToRootDir = 
-    directoryNameOnOriginalRelativeToRootDir = 
-    foundOriginal = False
-    fileId = 20100320100413FamilieZinkbeimPhotograph.jpg
-    """
     
   
-    newTgtDir = os.path.join(fileObject.ip['ROOT-DIR'],fileObject.copiesTgtDirRelativeToRootDir)
+    newTgtDir = os.path.join(fileObject.ip['ROOT-DIR'], fileObject.copiesTgtDirRelativeToRootDir)
     if  not os.path.exists(newTgtDir):
-        logging.debug("calling   os.makedirs("+newTgtDir+",'0775')")
+        logging.debug("calling   os.makedirs(" + newTgtDir + ",'0775')")
         if inputParams["SIMULATE"] == False: 
-            os.makedirs(newTgtDir )#,'0775')
+            os.makedirs(newTgtDir)  # ,'0775')
     if  not os.path.exists(os.path.join(newTgtDir, fileObject.fileBaseName)):
-        logging.debug("checking shutil.copy("+ fileObject.absCopiesOrigDateiName+","+newTgtDir)
+        logging.debug("checking shutil.copy(" + fileObject.absCopiesOrigDateiName + "," + newTgtDir)
         if inputParams["SIMULATE"] == False: 
-            shutil.copy(fileObject.absCopiesOrigDateiName,newTgtDir)
+            shutil.copy(fileObject.absCopiesOrigDateiName, newTgtDir)
             
   
 
@@ -151,18 +150,18 @@ def processNotFoundFile(fileObject):
 
 
 if sys.platform == "win32":
-  #defaultEncoding="latin1"
-  defaultEncoding="UTF-8"
+  # defaultEncoding="latin1"
+  defaultEncoding = "UTF-8"
 else:
-  defaultEncoding="UTF-8"
+  defaultEncoding = "UTF-8"
 
 
 if len(sys.argv) == 1 :
     print description
-    print sys.argv[0] + "<xml_configfile>"
+    print sys.argv[0] + "<json_configfile>"
     configFileName = 'SearchAndCopyFileFromOriginalDir_Photos.json'
 else:
-    configFileName=sys.argv[1]
+    configFileName = sys.argv[1]
 
 
 with open(configFileName, 'rb') as cfgfile:
@@ -171,11 +170,11 @@ if config["loglevel"] == "DEBUG":
     rootLogger = initLogger(logging.DEBUG)
 else:    
     rootLogger = initLogger(logging.INFO)
-configuration=  config["configuration"]  
-inputParams=config[configuration]
+configuration = config["configuration"]  
+inputParams = config[configuration]
 inputParams = extendInputParams(inputParams)
 
-(fileObjects,notFoundFileObjects) = createFileObjectsList(inputParams)
+(fileObjects, notFoundFileObjects) = createFileObjectsList(inputParams)
 for curFileObj in fileObjects:
   processFileObject(curFileObj)
 writeNotFoundFilesToFile(notFoundFileObjects)
@@ -192,7 +191,7 @@ def readConfigFromXML(configFileName):
         print "config file " + configFileName + " not found"
         sys.exit(1)
     listOfOrigDirs = []    
-    #print xmldoc.toxml().encode("utf-8")
+    # print xmldoc.toxml().encode("utf-8")
     logging.debug(xmldoc.toxml(defaultEncoding))
     configNode = xmldoc.firstChild
     for l1Node in configNode.childNodes:
@@ -200,7 +199,7 @@ def readConfigFromXML(configFileName):
             for l2Node in l1Node.childNodes:
                 if l2Node.nodeName == "ROOT-DIR":
                     """ Zugriff auf ein Attribut des tags """
-                    inputParams["ROOT-DIR"]=l2Node.getAttribute("value").encode(defaultEncoding)
+                    inputParams["ROOT-DIR"] = l2Node.getAttribute("value").encode(defaultEncoding)
                 if l2Node.nodeName == "ORIGINALS-DIRS":
                     """ Zugriff auf den Wert des tags """
                     for l3Node in l2Node.childNodes: 
@@ -225,6 +224,6 @@ def readConfigFromXML(configFileName):
              
     
     logging.debug("inputParams = \n%s" % inputParams) 
-    #logging.debug("tgtDirName = %s" % tgtDirName) 
+    # logging.debug("tgtDirName = %s" % tgtDirName) 
     return (inputParams)
 

@@ -30,6 +30,19 @@ copiesLinkDepthToBaseDir = 4
 absDateiNameOnOriginal = /home/zinks/Stefan/myPrg/MyPythonPrgs/SearchAndCopyFileFromOriginalDir/testdata/src/Alben/Keane/Under The Iron Sea/01_Atlantic.mp3
 dateiNameOnOriginalRelativeToRootDir = src/Alben/Keane/Under The Iron Sea/01_Atlantic.mp3
 directoryNameOnOriginalRelativeToRootDir = src/Alben/Keane/Under The Iron Sea
+
+    fileBaseName = 20100320100413FamilieZinkbeimPhotograph.jpg
+    absCopiesOrigDateiName = /links/persdata/Stefan/myPrg/MyPythonPrgs/SearchAndCopyFileFromOriginalDir/testdata/Photo/src/1_bisherigeBestellungen/2010/20101107_FotobuchItalienUndSchweden/FotobuchBilder/20100320100413FamilieZinkbeimPhotograph.jpg
+    copiesPathRelativeToRootDir = src/1_bisherigeBestellungen/2010/20101107_FotobuchItalienUndSchweden/FotobuchBilder/20100320100413FamilieZinkbeimPhotograph.jpg
+    copiesDirRelativeToRootDir = src/1_bisherigeBestellungen/2010/20101107_FotobuchItalienUndSchweden/FotobuchBilder
+    copiesTgtDirRelativeToRootDir = Entwickeln_Not_Found_Files_Dir/1_bisherigeBestellungen/2010/20101107_FotobuchItalienUndSchweden/FotobuchBilder
+    copiesLinkDepthToBaseDir = 0
+    absDateiNameOnOriginal = 
+    dateiNameOnOriginalRelativeToRootDir = 
+    directoryNameOnOriginalRelativeToRootDir = 
+    foundOriginal = False
+    fileId = 20100320100413FamilieZinkbeimPhotograph.jpg
+
   """
   ip = {}
   # keys :
@@ -61,17 +74,17 @@ directoryNameOnOriginalRelativeToRootDir = src/Alben/Keane/Under The Iron Sea
              "\r\n"
     return output
   
-  def initialize(self,inputParams,in_absCopiesOrigDateiName):
+  def initialize(self,inputParams,in_absCopiesOrigDateiName, originalFilesDict):
     self.ip = inputParams
     self.absCopiesOrigDateiName = in_absCopiesOrigDateiName
     self.fileBaseName = os.path.basename(self.absCopiesOrigDateiName)
     self.fileId = self.fileBaseName.rsplit('_',1)[0]
     found = False 
-    found = self.findFileInDirsExact(self.ip["ORIGINALS-DIRS"])
+    found = self.findFileInDirsExact(originalFilesDict)
     # TODO handle mutiple hits
     logging.debug("Found Exact Match = ") , found
     if found == False:
-      found = self.findFileInDirsFuzzy(self.ip["ORIGINALS-DIRS"])
+      found = self.findFileInDirsFuzzy(originalFilesDict)
 
     self.copiesPathRelativeToRootDir=self.absCopiesOrigDateiName[self.ip["ROOT-DIR_LENGTH"]:]          
     self.copiesDirRelativeToRootDir=os.path.dirname(self.copiesPathRelativeToRootDir)
@@ -87,7 +100,44 @@ directoryNameOnOriginalRelativeToRootDir = src/Alben/Keane/Under The Iron Sea
           
       
 
-  def findFileInDirsExact(self,dirNames):
+  def findFileInDirsExact(self,originalFilesDict):
+      if self.fileBaseName in originalFilesDict:
+          self.absDateiNameOnOriginal = originalFilesDict[self.fileBaseName]
+          self.foundOriginal = True
+      else:
+            self.foundOriginal = False   
+      return self.foundOriginal        
+ 
+
+ 
+  def findFileInDirsFuzzy(self,originalFilesDict):
+      for curOrigFileName in originalFilesDict:
+          match = re.search(self.fileBaseName,curOrigFileName,re.IGNORECASE)
+          if match != None:
+            self.absDateiNameOnOriginal = originalFilesDict[curOrigFileName]
+            self.foundOriginal = True
+            break
+          else:
+            curOrigFileId = curOrigFileName.rsplit('_',1)[0]  
+            # special cases
+            #20091108 11:18:38_TaufeVonValentin.jpg
+            #20100215 092113_Fasching im Kindergarten.jpg
+            #20100320100413FamilieZinkbeimPhotograph.jpg
+            translation_table = dict.fromkeys(map(ord, ': _'), None)
+            curOrigFileIdNormalized = curOrigFileId.translate(translation_table)
+            selfFileIdNormalized = self.fileId.translate(translation_table)
+            if selfFileIdNormalized == curOrigFileIdNormalized:
+              self.absDateiNameOnOriginal = originalFilesDict[curOrigFileName]
+              self.foundOriginal = True
+      return self.foundOriginal        
+
+ 
+ 
+ 
+ 
+ 
+ ############################################################### 
+  def oldfindFileInDirsExact(self,dirNames):
     for relDirName in dirNames:
       dirName = os.path.join(self.ip["ROOT-DIR"],relDirName)
       logging.debug(" dirName = " + dirName )
@@ -105,7 +155,7 @@ directoryNameOnOriginalRelativeToRootDir = src/Alben/Keane/Under The Iron Sea
           break  
     return self.foundOriginal        
 
-  def findFileInDirsFuzzy(self,dirNames):
+  def oldfindFileInDirsFuzzy(self,dirNames):
     for relDirName in dirNames:
       dirName = os.path.join(self.ip["ROOT-DIR"],relDirName)
       logging.debug(" dirName = " + dirName )
