@@ -61,11 +61,13 @@ def createFileObjectsList(inputParams):
               logging.debug(" absCopiesOrigDateiName = " + str(absCopiesOrigDateiName))
               newFile = FileObject()
               FileObject.initialize(newFile, inputParams, absCopiesOrigDateiName,originalFilesDict)
-              logging.info(FileObject.printOut(newFile))
+              logging.debug(FileObject.printOut(newFile))
               if newFile.foundOriginal == False:
-                notFoundFileObjects.append(newFile) 
+                notFoundFileObjects.append(newFile)
+                logging.info("no match found for: " + str(absCopiesOrigDateiName))
               else:
                 fileObjects.append(newFile) 
+                logging.info("   match found for: " + str(absCopiesOrigDateiName))
   return (fileObjects, notFoundFileObjects)
 
 ###########################################################################
