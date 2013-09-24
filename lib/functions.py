@@ -36,6 +36,7 @@ def initLogger(level):
     try: 
         rootLogger = logging.getLogger()
         logging.config.fileConfig("pyLoggerConfig.cfg")
+        rootLogger.setLevel(level)
     except:    
         logHandler = logging.StreamHandler(sys.stdout)
         #logging.basicConfig(stream=logHandler)
