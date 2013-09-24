@@ -36,6 +36,7 @@ directoryNameOnOriginalRelativeToRootDir = src/Alben/Keane/Under The Iron Sea
   # ROOT-DIR ,ORIGINALS-DIR,ABS-COPIES-TGT-DIR,COPIES-TGT-DIR,COPIES-ORIG-DIR,ABS-ORIGINALS-DIR,ABS-COPIES-ORIG-DIR'}
   absCopiesOrigDateiName = u""
   fileBaseName    = u""
+  fileId = u""
   absDateiNameOnOriginal = u""
   copiesPathRelativeToRootDir = u"" 
   copiesDirRelativeToRootDir = u""
@@ -43,7 +44,7 @@ directoryNameOnOriginalRelativeToRootDir = src/Alben/Keane/Under The Iron Sea
   copiesLinkDepthToBaseDir = 0
   dateiNameOnOriginalRelativeToRootDir = u""
   directoryNameOnOriginalRelativeToRootDir = u""
-  foundOriginal = 1 
+  foundOriginal = False
    
   def printOut(self):
     output = "\r\nfileBaseName = " + self.fileBaseName + \
@@ -56,35 +57,37 @@ directoryNameOnOriginalRelativeToRootDir = src/Alben/Keane/Under The Iron Sea
              "\r\ndateiNameOnOriginalRelativeToRootDir = " + self.dateiNameOnOriginalRelativeToRootDir + \
              "\r\ndirectoryNameOnOriginalRelativeToRootDir = " + self.directoryNameOnOriginalRelativeToRootDir + \
              "\r\nfoundOriginal = " + str(self.foundOriginal) + \
+             "\r\nfileId = " + self.fileId + \
              "\r\n"
     return output
   
   def initialize(self,inputParams,in_absCopiesOrigDateiName):
     self.ip = inputParams
     self.absCopiesOrigDateiName = in_absCopiesOrigDateiName
-    self.fileBaseName = os.path.basename(self.absCopiesOrigDateiName) 
-    filesOnOriginal = self.findFileInDirs(self.ip["ORIGINALS-DIRS"],self.fileBaseName)
+    self.fileBaseName = os.path.basename(self.absCopiesOrigDateiName)
+    self.fileId = self.fileBaseName.rsplit('_',1)[0]
+    found = False 
+    found = self.findFileInDirsExact(self.ip["ORIGINALS-DIRS"])
     # TODO handle mutiple hits
-    logging.debug("filesOnOriginal = ") , filesOnOriginal
-    if filesOnOriginal == "":
-      filesOnOriginal = self.findFileInDirsCaseInsensitive(self.ip["ORIGINALS-DIRS"],self.fileBaseName)
-      if filesOnOriginal == "":
-        self.foundOriginal = -1
-    if self.foundOriginal == 1:  
-      self.absDateiNameOnOriginal=filesOnOriginal
-      self.copiesPathRelativeToRootDir=self.absCopiesOrigDateiName[self.ip["ROOT-DIR_LENGTH"]:]          
-      self.copiesDirRelativeToRootDir=os.path.dirname(self.copiesPathRelativeToRootDir)
-      lengthCopiesOrigDir= len(self.ip['COPIES-ORIG-DIR'])
-      self.copiesTgtDirRelativeToRootDir=os.path.join(self.ip['COPIES-TGT-DIR'],self.copiesDirRelativeToRootDir[lengthCopiesOrigDir+1:] )
-      self.copiesLinkDepthToBaseDir=self.copiesTgtDirRelativeToRootDir.count(os.sep) # +1
+    logging.debug("Found Exact Match = ") , found
+    if found == False:
+      found = self.findFileInDirsFuzzy(self.ip["ORIGINALS-DIRS"])
+
+    self.copiesPathRelativeToRootDir=self.absCopiesOrigDateiName[self.ip["ROOT-DIR_LENGTH"]:]          
+    self.copiesDirRelativeToRootDir=os.path.dirname(self.copiesPathRelativeToRootDir)
+    lengthCopiesOrigDir= len(self.ip['COPIES-ORIG-DIR'])
+    self.copiesLinkDepthToBaseDir=self.copiesTgtDirRelativeToRootDir.count(os.sep) # +1
+      
+    if found == True:  
       self.dateiNameOnOriginalRelativeToRootDir=self.absDateiNameOnOriginal[self.ip["ROOT-DIR_LENGTH"]:]
       self.directoryNameOnOriginalRelativeToRootDir=os.path.dirname(self.dateiNameOnOriginalRelativeToRootDir)
-      
+      self.copiesTgtDirRelativeToRootDir=os.path.join(self.ip['COPIES-TGT-DIR'],self.copiesDirRelativeToRootDir[lengthCopiesOrigDir+1:] )
+    else:
+      self.copiesTgtDirRelativeToRootDir=os.path.join(self.ip['NOTFOUND_FILES_TGT_DIR'],self.copiesDirRelativeToRootDir[lengthCopiesOrigDir+1:] )
+          
       
 
-  def findFileInDirs(self,dirNames,filePattern):
-    tgtCompleteFileName = u""
-    found= -1
+  def findFileInDirsExact(self,dirNames):
     for relDirName in dirNames:
       dirName = os.path.join(self.ip["ROOT-DIR"],relDirName)
       logging.debug(" dirName = " + dirName )
@@ -92,36 +95,46 @@ directoryNameOnOriginalRelativeToRootDir = src/Alben/Keane/Under The Iron Sea
   #      logging.debug(" dirList = " + str(dirList) )
   #      logging.debug(" fileList = " + str(fileList))
         for file in fileList:
-          if file == filePattern:
-            tgtCompleteFileName = os.path.join(dir,file)
-            found = 1
+          if file == self.fileBaseName:
+            self.absDateiNameOnOriginal = os.path.join(dir,file)
+            self.foundOriginal = True
             break
           else:
-            found = -1   
-        if found == 1:
+            self.foundOriginal = False   
+        if self.foundOriginal == True:
           break  
-    return tgtCompleteFileName        
+    return self.foundOriginal        
 
-  def findFileInDirsCaseInsensitive(self,dirNames,filePattern):
-    tgtCompleteFileName = u""
-    found= -1
+  def findFileInDirsFuzzy(self,dirNames):
     for relDirName in dirNames:
       dirName = os.path.join(self.ip["ROOT-DIR"],relDirName)
       logging.debug(" dirName = " + dirName )
       for dir, dirList, fileList in os.walk (dirName):
   #      logging.debug(" dirList = " + str(dirList) )
   #      logging.debug(" fileList = " + str(fileList))
-        for file in fileList:
-          match = re.search(filePattern,file,re.IGNORECASE)
+        for curOrigFile in fileList:
+          match = re.search(self.fileBaseName,curOrigFile,re.IGNORECASE)
           if match != None:
-            tgtCompleteFileName = os.path.join(dir,match.group(0))
-            found = 1
+            self.absDateiNameOnOriginal = os.path.join(dir,curOrigFile)
+            self.foundOriginal = True
             break
           else:
-            found = -1   
-        if found == 1:
+            curOrigFileId = curOrigFile.rsplit('_',1)[0]  
+            # special cases
+            #20091108 11:18:38_TaufeVonValentin.jpg
+            #20100215 092113_Fasching im Kindergarten.jpg
+            #20100320100413FamilieZinkbeimPhotograph.jpg
+            translation_table = dict.fromkeys(map(ord, ': _'), None)
+            curOrigFileIdNormalized = curOrigFileId.translate(translation_table)
+            selfFileIdNormalized = self.fileId.translate(translation_table)
+            if selfFileIdNormalized == curOrigFileIdNormalized:
+              self.absDateiNameOnOriginal = os.path.join(dir,curOrigFile)
+              self.foundOriginal = True
+              break
+          self.foundOriginal = False   
+        if self.foundOriginal == True:
           break  
-    return tgtCompleteFileName        
+    return self.foundOriginal        
 
 
 ################################################################################################      

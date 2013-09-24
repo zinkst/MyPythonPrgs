@@ -1,9 +1,9 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-description = """This program handles handles directories with relativeLinks to 
-favorite Photos and swap the links with the files  
+description = """This program handles handles directories with favorite Photos and creates a directory with absolute links to the original file
+if found on the originals dir  
 
-SwapAndLinkFile.py <option> [<xml_configfile>]
+SearchAndCopyFile.py <option> [<xml_configfile>]
 
 """
 
@@ -19,60 +19,12 @@ import logging.config
 from xml.dom import minidom
 from xml.dom import Node
 import codecs
+import json
+import shutil
 from FileObject import FileObject
 from functions import initLogger
 #import scriptutil as SU
     
-############################################################################
-"""
-    <ROOT-DIR value="/home/zinks/Stefan/myPrg/MyPythonPrgs/SearchAndCopyFileFromOriginalDir/testdata/" />
-    <ORIGINALS-DIRS>src/Alben</ORIGINALS-DIRS> 
-    <COPIES-ORIG-DIR>src/car</COPIES-ORIG-DIR> 
-    <COPIES-TGT-DIR>test/car_new</COPIES-TGT-DIR> 
-"""
-
-def readConfigFromXML(configFileName):
-    try:
-        xmldoc = minidom.parse(configFileName)
-    except IOError:
-        print "config file " + configFileName + " not found"
-        sys.exit(1)
-    listOfOrigDirs = []    
-    #print xmldoc.toxml().encode("utf-8")
-    logging.debug(xmldoc.toxml(defaultEncoding))
-    configNode = xmldoc.firstChild
-    for l1Node in configNode.childNodes:
-        if l1Node.nodeName == sys.platform:
-            for l2Node in l1Node.childNodes:
-                if l2Node.nodeName == "ROOT-DIR":
-                    """ Zugriff auf ein Attribut des tags """
-                    inputParams["ROOT-DIR"]=l2Node.getAttribute("value").encode(defaultEncoding)
-                if l2Node.nodeName == "ORIGINALS-DIRS":
-                    """ Zugriff auf den Wert des tags """
-                    for l3Node in l2Node.childNodes: 
-                      if l3Node.nodeName == "el":
-                        listOfOrigDirs.append(l3Node.firstChild.nodeValue)
-                    inputParams["ORIGINALS-DIRS"] = listOfOrigDirs
-                if l2Node.nodeName == "COPIES-ORIG-DIR":
-                    """ Zugriff auf den Wert des tags """
-                    inputParams["COPIES-ORIG-DIR"] = l2Node.firstChild.nodeValue
-                if l2Node.nodeName == "COPIES-TGT-DIR":
-                    """ Zugriff auf den Wert des tags """
-                    inputParams["COPIES-TGT-DIR"] = l2Node.firstChild.nodeValue
-                  
-        elif l1Node.nodeName == "generic":
-            for l2Node in l1Node.childNodes:
-                if l2Node.nodeName == "debug":
-                    inputParams["DEBUG"] = l2Node.firstChild.nodeValue
-                if l2Node.nodeName == "linkPrefix":
-#                    linkPrefix = l2Node.getAttribute("value").encode(defaultEncoding)
-                    linkPrefix = l2Node.getAttribute("value")
-                                 
-             
-    
-    logging.debug("inputParams = \n%s" % inputParams) 
-    #logging.debug("tgtDirName = %s" % tgtDirName) 
-    return (inputParams)
 
 ###########################################################################
 def extendInputParams(inputParams):
@@ -98,7 +50,7 @@ def createFileObjectsList(inputParams):
             newFile = FileObject()
             FileObject.initialize(newFile,inputParams,absCopiesOrigDateiName)
             logging.info(FileObject.printOut(newFile))
-            if newFile.foundOriginal == -1:
+            if newFile.foundOriginal == False:
               notFoundFileObjects.append(newFile) 
             else:
               fileObjects.append(newFile) 
@@ -147,6 +99,7 @@ directoryNameOnOriginalRelativeToRootDir = src/Alben/Rammstein/Rosenrot
     if inputParams["DEBUG"] != "true": 
       #os.symlink(newRelLink,fileObject.fileBaseName)
       os.symlink(newAbsLink,fileObject.fileBaseName)  
+
 ############################################################################
 def writeNotFoundFilesToFile(notFoundFileObjects):
     try:
@@ -163,6 +116,34 @@ def writeNotFoundFilesToFile(notFoundFileObjects):
     except IOError:
         logging.info("error opening file %s" % outFileName) 
     return 1
+
+#############################################################################################
+def processNotFoundFile(fileObject):
+    """
+    fileBaseName = 20100320100413FamilieZinkbeimPhotograph.jpg
+    absCopiesOrigDateiName = /links/persdata/Stefan/myPrg/MyPythonPrgs/SearchAndCopyFileFromOriginalDir/testdata/Photo/src/1_bisherigeBestellungen/2010/20101107_FotobuchItalienUndSchweden/FotobuchBilder/20100320100413FamilieZinkbeimPhotograph.jpg
+    copiesPathRelativeToRootDir = src/1_bisherigeBestellungen/2010/20101107_FotobuchItalienUndSchweden/FotobuchBilder/20100320100413FamilieZinkbeimPhotograph.jpg
+    copiesDirRelativeToRootDir = src/1_bisherigeBestellungen/2010/20101107_FotobuchItalienUndSchweden/FotobuchBilder
+    copiesTgtDirRelativeToRootDir = Entwickeln_Not_Found_Files_Dir/1_bisherigeBestellungen/2010/20101107_FotobuchItalienUndSchweden/FotobuchBilder
+    copiesLinkDepthToBaseDir = 0
+    absDateiNameOnOriginal = 
+    dateiNameOnOriginalRelativeToRootDir = 
+    directoryNameOnOriginalRelativeToRootDir = 
+    foundOriginal = False
+    fileId = 20100320100413FamilieZinkbeimPhotograph.jpg
+    """
+    
+  
+    newTgtDir = os.path.join(fileObject.ip['ROOT-DIR'],fileObject.copiesTgtDirRelativeToRootDir)
+    if  not os.path.exists(newTgtDir):
+        logging.debug("calling   os.makedirs("+newTgtDir+",'0775')")
+        if inputParams["DEBUG"] != "true": 
+            os.makedirs(newTgtDir )#,'0775')
+    if  not os.path.exists(os.path.join(newTgtDir, fileObject.fileBaseName)):
+        logging.debug("checking shutil.copy("+ fileObject.absCopiesOrigDateiName+","+newTgtDir)
+        if inputParams["DEBUG"] != "true": 
+            shutil.copy(fileObject.absCopiesOrigDateiName,newTgtDir)
+            
   
 
 ############################################################################
@@ -180,21 +161,66 @@ else:
 if len(sys.argv) == 1 :
     print description
     print sys.argv[0] + "<xml_configfile>"
-    configFileName = 'SearchAndCopyFileFromOriginalDir.xml'
+    configFileName = 'SearchAndCopyFileFromOriginalDir_Photos.json'
 else:
     configFileName=sys.argv[1]
 
-inputParams={}
-
-inputParams = readConfigFromXML(configFileName)
+with open(configFileName, 'rb') as cfgfile:
+    config = json.load(cfgfile)
+configuration=  config["configuration"]  
+inputParams=config[configuration]
 inputParams = extendInputParams(inputParams)
+
 (fileObjects,notFoundFileObjects) = createFileObjectsList(inputParams)
 for curFileObj in fileObjects:
   processFileObject(curFileObj)
 writeNotFoundFilesToFile(notFoundFileObjects)
+for curNofFoundFileObj in notFoundFileObjects:
+  processNotFoundFile(curNofFoundFileObj)
 
+####################################################################
+######## Old methods
+####################################################################
+def readConfigFromXML(configFileName):
+    try:
+        xmldoc = minidom.parse(configFileName)
+    except IOError:
+        print "config file " + configFileName + " not found"
+        sys.exit(1)
+    listOfOrigDirs = []    
+    #print xmldoc.toxml().encode("utf-8")
+    logging.debug(xmldoc.toxml(defaultEncoding))
+    configNode = xmldoc.firstChild
+    for l1Node in configNode.childNodes:
+        if l1Node.nodeName == sys.platform:
+            for l2Node in l1Node.childNodes:
+                if l2Node.nodeName == "ROOT-DIR":
+                    """ Zugriff auf ein Attribut des tags """
+                    inputParams["ROOT-DIR"]=l2Node.getAttribute("value").encode(defaultEncoding)
+                if l2Node.nodeName == "ORIGINALS-DIRS":
+                    """ Zugriff auf den Wert des tags """
+                    for l3Node in l2Node.childNodes: 
+                      if l3Node.nodeName == "el":
+                        listOfOrigDirs.append(l3Node.firstChild.nodeValue)
+                    inputParams["ORIGINALS-DIRS"] = listOfOrigDirs
+                if l2Node.nodeName == "COPIES-ORIG-DIR":
+                    """ Zugriff auf den Wert des tags """
+                    inputParams["COPIES-ORIG-DIR"] = l2Node.firstChild.nodeValue
+                if l2Node.nodeName == "COPIES-TGT-DIR":
+                    """ Zugriff auf den Wert des tags """
+                    inputParams["COPIES-TGT-DIR"] = l2Node.firstChild.nodeValue
+                  
+        elif l1Node.nodeName == "generic":
+            for l2Node in l1Node.childNodes:
+                if l2Node.nodeName == "debug":
+                    inputParams["DEBUG"] = l2Node.firstChild.nodeValue
+                if l2Node.nodeName == "linkPrefix":
+#                    linkPrefix = l2Node.getAttribute("value").encode(defaultEncoding)
+                    linkPrefix = l2Node.getAttribute("value")
+                                 
+             
+    
+    logging.debug("inputParams = \n%s" % inputParams) 
+    #logging.debug("tgtDirName = %s" % tgtDirName) 
+    return (inputParams)
 
-#(rootDir, relPathToLinks) = readConfigFromXML(configFileName)
-#linkObjects = createLinkObjectsList(rootDir, relPathToLinks)
-#for curLinkObj in linkObjects:
-#  processLinkObjects(curLinkObj)
