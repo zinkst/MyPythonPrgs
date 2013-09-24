@@ -82,11 +82,11 @@ directoryNameOnOriginalRelativeToRootDir = src/Alben/Rammstein/Rosenrot
   newTgtDir = os.path.join(fileObject.ip['ROOT-DIR'],fileObject.copiesTgtDirRelativeToRootDir)
   if  not os.path.exists(newTgtDir):
     logging.debug("calling   os.makedirs("+newTgtDir+",'0775')")
-    if inputParams["DEBUG"] != "true": 
+    if inputParams["SIMULATE"] == False: 
       os.makedirs(newTgtDir )#,'0775')
     
   logging.debug("calling os.chdir("+newTgtDir+")")
-  if inputParams["DEBUG"] != "true": 
+  if inputParams["SIMULATE"] == False: 
     os.chdir(newTgtDir)
   
   newRelLink=os.path.join("../"*fileObject.copiesLinkDepthToBaseDir,fileObject.dateiNameOnOriginalRelativeToRootDir)
@@ -96,7 +96,7 @@ directoryNameOnOriginalRelativeToRootDir = src/Alben/Rammstein/Rosenrot
   if  not os.path.exists(fileObject.fileBaseName):
     logging.debug("calling os.symlink("+newRelLink+","+fileObject.fileBaseName+")")
     logging.debug("calling os.symlink("+newAbsLink+","+fileObject.fileBaseName+")")
-    if inputParams["DEBUG"] != "true": 
+    if inputParams["SIMULATE"] == False: 
       #os.symlink(newRelLink,fileObject.fileBaseName)
       os.symlink(newAbsLink,fileObject.fileBaseName)  
 
@@ -137,11 +137,11 @@ def processNotFoundFile(fileObject):
     newTgtDir = os.path.join(fileObject.ip['ROOT-DIR'],fileObject.copiesTgtDirRelativeToRootDir)
     if  not os.path.exists(newTgtDir):
         logging.debug("calling   os.makedirs("+newTgtDir+",'0775')")
-        if inputParams["DEBUG"] != "true": 
+        if inputParams["SIMULATE"] == False: 
             os.makedirs(newTgtDir )#,'0775')
     if  not os.path.exists(os.path.join(newTgtDir, fileObject.fileBaseName)):
         logging.debug("checking shutil.copy("+ fileObject.absCopiesOrigDateiName+","+newTgtDir)
-        if inputParams["DEBUG"] != "true": 
+        if inputParams["SIMULATE"] == False: 
             shutil.copy(fileObject.absCopiesOrigDateiName,newTgtDir)
             
   
@@ -149,7 +149,6 @@ def processNotFoundFile(fileObject):
 ############################################################################
 # main starts here
 
-rootLogger = initLogger()
 
 if sys.platform == "win32":
   #defaultEncoding="latin1"
@@ -165,8 +164,13 @@ if len(sys.argv) == 1 :
 else:
     configFileName=sys.argv[1]
 
+
 with open(configFileName, 'rb') as cfgfile:
     config = json.load(cfgfile)
+if config["loglevel"] == "DEBUG":
+    rootLogger = initLogger(logging.DEBUG)
+else:    
+    rootLogger = initLogger(logging.INFO)
 configuration=  config["configuration"]  
 inputParams=config[configuration]
 inputParams = extendInputParams(inputParams)
@@ -213,7 +217,7 @@ def readConfigFromXML(configFileName):
         elif l1Node.nodeName == "generic":
             for l2Node in l1Node.childNodes:
                 if l2Node.nodeName == "debug":
-                    inputParams["DEBUG"] = l2Node.firstChild.nodeValue
+                    inputParams["SIMULATE"] = l2Node.firstChild.nodeValue
                 if l2Node.nodeName == "linkPrefix":
 #                    linkPrefix = l2Node.getAttribute("value").encode(defaultEncoding)
                     linkPrefix = l2Node.getAttribute("value")

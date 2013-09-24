@@ -1,8 +1,9 @@
 {
     "configuration" : "develop" ,
+    "loglevel"	: "DEBUG" ,
     "develop" :  
     		{
-	    		"DEBUG": "false", 
+	    		"SIMULATE": false, 
 	 	    	"COPIES-ORIG-DIR": "src", 
 	    		"COPIES-TGT-DIR": "Entwickeln_linksabs", 
 	    		"NOTFOUND_FILES_TGT_DIR": "Entwickeln_Not_Found_Files_Dir", 
@@ -13,7 +14,7 @@
 	    	},
     "production" :  
 	    	{
-		 	 	"DEBUG": "false", 
+		 	 	"SIMULATE": false, 
 		 	    "COPIES-ORIG-DIR": "Entwickeln", 
 		    	"COPIES-TGT-DIR": "Entwickeln_linksabs", 
 		    	"NOTFOUND_FILES_TGT_DIR": "Entwickeln_Not_Found_Files_Dir", 
