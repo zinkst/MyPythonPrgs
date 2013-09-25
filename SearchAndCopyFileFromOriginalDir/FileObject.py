@@ -138,6 +138,11 @@ directoryNameOnOriginalRelativeToRootDir = src/Alben/Keane/Under The Iron Sea
                 if selfFileIdNormalized == curOrigFileIdNormalized:
                   self.absDateiNameOnOriginal = originalFilesDict[curOrigFileName]
                   self.foundOriginal = True
+                else:
+                   #20050907_123010_RadtourWildbadKreuthStrandRottachEgern.jpg ==  20050907_20RadtourWildbadKreuthStrandRottachEgern.JPG  
+                   #nur mit exiv date zu lösen benutze gexiv library
+                   logging.debug("fuzzy method 3 (exiv): "+ selfFileIdNormalized +" == " +curOrigFileIdNormalized )
+                   
       return self.foundOriginal        
 
  
