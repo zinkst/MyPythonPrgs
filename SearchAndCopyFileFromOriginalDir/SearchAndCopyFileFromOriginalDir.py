@@ -1,5 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+
 description = """This program handles handles directories with favorite Photos and creates a directory with absolute links to the original file
 if found on the originals dir  
 
@@ -23,9 +24,22 @@ import json
 import shutil
 from FileObject import FileObject
 import time,datetime
-from functions import initLogger
+#efrom functions import initLogger
 # import scriptutil as SU
     
+
+def initLogger(config):
+    handler = logging.StreamHandler(sys.stdout)
+    frm = logging.Formatter("%(asctime)s [%(levelname)-5s]: %(message)s", "%Y%m%d %H:%M:%S")
+    handler.setFormatter(frm)
+    logger = logging.getLogger()
+    logger.addHandler(handler)
+    if config["loglevel"] == "DEBUG":
+        logger.setLevel(logging.DEBUG)
+    else:
+        logger.setLevel(logging.INFO)
+    return logger
+
 
 ###########################################################################
 def extendInputParams(inputParams):
@@ -169,10 +183,9 @@ else:
 
 with open(configFileName, 'rb') as cfgfile:
     config = json.load(cfgfile)
-if config["loglevel"] == "DEBUG":
-    rootLogger = initLogger(logging.DEBUG)
-else:    
-    rootLogger = initLogger(logging.INFO)
+
+logger = initLogger(config)
+
 configuration = config["configuration"]  
 inputParams = config[configuration]
 inputParams = extendInputParams(inputParams)
