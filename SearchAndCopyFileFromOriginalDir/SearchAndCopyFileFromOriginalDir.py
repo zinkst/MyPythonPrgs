@@ -22,6 +22,7 @@ import codecs
 import json
 import shutil
 from FileObject import FileObject
+import time,datetime
 from functions import initLogger
 # import scriptutil as SU
     
@@ -176,12 +177,26 @@ configuration = config["configuration"]
 inputParams = config[configuration]
 inputParams = extendInputParams(inputParams)
 
+begin = datetime.datetime.now()
+beginFormatted = begin.strftime('%Y-%m-%d %H:%M:%S')
+logging.info("starting processing at " + beginFormatted)
+
 (fileObjects, notFoundFileObjects) = createFileObjectsList(inputParams)
 for curFileObj in fileObjects:
   processFileObject(curFileObj)
 writeNotFoundFilesToFile(notFoundFileObjects)
 for curNofFoundFileObj in notFoundFileObjects:
   processNotFoundFile(curNofFoundFileObj)
+#time.sleep(5)
+
+end = datetime.datetime.now()
+endFormatted = end.strftime('%Y-%m-%d %H:%M:%S')
+logging.info("end processing at " + endFormatted)
+logging.info("processing took: " + str(end - begin))
+logging.info("Number of matched files %d" % len(fileObjects) )
+logging.info("Number of unmatched files %d" % len(notFoundFileObjects) )
+
+
 
 ####################################################################
 ######## Old methods

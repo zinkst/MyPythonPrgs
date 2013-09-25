@@ -122,13 +122,22 @@ directoryNameOnOriginalRelativeToRootDir = src/Alben/Keane/Under The Iron Sea
             # special cases
             #20091108 11:18:38_TaufeVonValentin.jpg
             #20100215 092113_Fasching im Kindergarten.jpg
-            #20100320100413FamilieZinkbeimPhotograph.jpg
             translation_table = dict.fromkeys(map(ord, ': _'), None)
             curOrigFileIdNormalized = curOrigFileId.translate(translation_table)
             selfFileIdNormalized = self.fileId.translate(translation_table)
+            logging.debug("fuzzy method 1: "+ selfFileIdNormalized +" == " +curOrigFileIdNormalized )
             if selfFileIdNormalized == curOrigFileIdNormalized:
               self.absDateiNameOnOriginal = originalFilesDict[curOrigFileName]
               self.foundOriginal = True
+            else:
+                #20100320100413FamilieZinkbeimPhotograph.jpg
+                match = re.match('\d*',selfFileIdNormalized,re.UNICODE)
+                if match:
+                    selfFileIdNormalized = match.group(0)
+                logging.debug("fuzzy method 2: "+ selfFileIdNormalized +" == " +curOrigFileIdNormalized )
+                if selfFileIdNormalized == curOrigFileIdNormalized:
+                  self.absDateiNameOnOriginal = originalFilesDict[curOrigFileName]
+                  self.foundOriginal = True
       return self.foundOriginal        
 
  
