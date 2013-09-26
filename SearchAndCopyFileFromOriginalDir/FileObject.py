@@ -7,8 +7,9 @@ import logging
 import logging.config 
 import os
 import re
-
-#import scriptutil as SU
+import time,datetime
+from gi.repository import GExiv2
+   
 
     
 class FileObject:
@@ -57,6 +58,7 @@ directoryNameOnOriginalRelativeToRootDir = src/Alben/Keane/Under The Iron Sea
   copiesLinkDepthToBaseDir = 0
   dateiNameOnOriginalRelativeToRootDir = u""
   directoryNameOnOriginalRelativeToRootDir = u""
+  exifDateTimeString = None
   foundOriginal = False
    
   def printOut(self):
@@ -69,6 +71,7 @@ directoryNameOnOriginalRelativeToRootDir = src/Alben/Keane/Under The Iron Sea
              "\r\nabsDateiNameOnOriginal = " + self.absDateiNameOnOriginal + \
              "\r\ndateiNameOnOriginalRelativeToRootDir = " + self.dateiNameOnOriginalRelativeToRootDir + \
              "\r\ndirectoryNameOnOriginalRelativeToRootDir = " + self.directoryNameOnOriginalRelativeToRootDir + \
+             "\r\exifDateTimeString = " + str(self.exifDateTimeString) + \
              "\r\nfoundOriginal = " + str(self.foundOriginal) + \
              "\r\nfileId = " + self.fileId + \
              "\r\n"
@@ -80,6 +83,19 @@ directoryNameOnOriginalRelativeToRootDir = src/Alben/Keane/Under The Iron Sea
     self.fileBaseName = os.path.basename(self.absCopiesOrigDateiName)
     self.fileId = self.fileBaseName.rsplit('_',1)[0]
     found = False 
+    try:
+        src_exif = GExiv2.Metadata(self.absCopiesOrigDateiName)
+        exifDateTime = src_exif['Exif.Photo.DateTimeOriginal']
+        if exifDateTime is not None:
+            # Python2
+            #self.exifDateTimeString=exifDateTime.translate(None,': _')    
+            #Python 3
+            trantab = str.maketrans({ '_' :'', ' ':'', ':':''})
+            self.exifDateTimeString=exifDateTime.translate(trantab) 
+               
+    except KeyError:
+        logging.debug("Image " + self.absCopiesOrigDateiName +" does not have exiv date time")
+        self.exifDateTimeString = ""
     found = self.findFileInDirsExact(originalFilesDict)
     # TODO handle mutiple hits
     logging.debug("Found Exact Match = ") , found
@@ -90,7 +106,7 @@ directoryNameOnOriginalRelativeToRootDir = src/Alben/Keane/Under The Iron Sea
     self.copiesDirRelativeToRootDir=os.path.dirname(self.copiesPathRelativeToRootDir)
     lengthCopiesOrigDir= len(self.ip['COPIES-ORIG-DIR'])
     self.copiesLinkDepthToBaseDir=self.copiesTgtDirRelativeToRootDir.count(os.sep) # +1
-      
+          
     if found == True:  
       self.dateiNameOnOriginalRelativeToRootDir=self.absDateiNameOnOriginal[self.ip["ROOT-DIR_LENGTH"]:]
       self.directoryNameOnOriginalRelativeToRootDir=os.path.dirname(self.dateiNameOnOriginalRelativeToRootDir)
@@ -141,14 +157,30 @@ directoryNameOnOriginalRelativeToRootDir = src/Alben/Keane/Under The Iron Sea
                 else:
                    #20050907_123010_RadtourWildbadKreuthStrandRottachEgern.jpg ==  20050907_20RadtourWildbadKreuthStrandRottachEgern.JPG  
                    #nur mit exiv date zu lösen benutze gexiv library
-                   logging.debug("fuzzy method 3 (exiv): "+ selfFileIdNormalized +" == " +curOrigFileIdNormalized )
-                   
+                   logging.debug("fuzzy method 3 (exiv): "+ self.exifDateTimeString +" == " +curOrigFileIdNormalized )
+                   if self.exifDateTimeString == curOrigFileIdNormalized:
+                       self.absDateiNameOnOriginal = originalFilesDict[curOrigFileName]
+                       self.foundOriginal = True
       return self.foundOriginal        
 
  
  
- 
- 
+  def comparePicturesByExifDate(self,curOrigFullFileName):
+     try:
+         src_exif = GExiv2.Metadata(self.absCopiesOrigDateiName)
+         src_ExifDate = src_exif.get_date_time().strftime('%Y%m%d%H%M%S')
+         #logging.DEBUG("src-exifTimeStamp for " + self.fileBaseName + " is " + src_ExifDate)
+         tgt_exif = GExiv2.Metadata(curOrigFullFileName)
+         tgt_ExifDate = tgt_exif.get_date_time().strftime('%Y%m%d%H%M%S')
+         #logging.DEBUG("tgt-exifTimeStamp for " + os.path.basename(curOrigFullFileName) + " is " +tgt_ExifDate) )
+         if src_ExifDate == tgt_ExifDate:
+             return True
+         else:
+             return False
+     except:
+        logging.debug("Image does not have exiv date time")
+        return False
+      
  
  ############################################################### 
   def oldfindFileInDirsExact(self,dirNames):

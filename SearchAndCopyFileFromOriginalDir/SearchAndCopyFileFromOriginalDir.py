@@ -131,25 +131,17 @@ directoryNameOnOriginalRelativeToRootDir = src/Alben/Rammstein/Rosenrot
 
 ############################################################################
 def writeNotFoundFilesToFile(notFoundFileObjects):
-    try:
-        # outfile = codecs.open(, "wb","latin1","xmlcharrefreplace")
-        outFileName = os.path.join(inputParams['ROOT-DIR'], inputParams['COPIES-ORIG-DIR'], "notFoundFiles.txt")
-        outfile = codecs.open(outFileName, "wb", "utf8")
-        try:
-          for curNotFoundFileObj in notFoundFileObjects:
+    outFileName = os.path.join(inputParams['ROOT-DIR'], inputParams['COPIES-ORIG-DIR'], "notFoundFiles.txt")
+#    with open(outFileName, 'w',encoding='utf-8') as outfile:
+    with open(outFileName, 'w') as outfile:
+        for curNotFoundFileObj in notFoundFileObjects:
             outLine = curNotFoundFileObj.absCopiesOrigDateiName
             logging.info("outLine=" + outLine)
             outfile.write(outLine + '\n')
-        finally:
-            outfile.close()
-    except IOError:
-        logging.info("error opening file %s" % outFileName) 
-    return 1
+    
 
 #############################################################################################
 def processNotFoundFile(fileObject):
-    
-  
     newTgtDir = os.path.join(fileObject.ip['ROOT-DIR'], fileObject.copiesTgtDirRelativeToRootDir)
     if  not os.path.exists(newTgtDir):
         logging.debug("calling   os.makedirs(" + newTgtDir + ",'0775')")
@@ -165,23 +157,18 @@ def processNotFoundFile(fileObject):
 ############################################################################
 # main starts here
 
-
-if sys.platform == "win32":
-  # defaultEncoding="latin1"
-  defaultEncoding = "UTF-8"
-else:
-  defaultEncoding = "UTF-8"
-
-
 if len(sys.argv) == 1 :
-    print description
-    print sys.argv[0] + "<json_configfile>"
+    print(description)
+    print(sys.argv[0] + "<json_configfile>")
     configFileName = 'SearchAndCopyFileFromOriginalDir_Photos.json'
 else:
     configFileName = sys.argv[1]
 
 
-with open(configFileName, 'rb') as cfgfile:
+# Python2 
+#with open(configFileName, 'r') as cfgfile:
+# Python3 
+with open(configFileName, 'r',encoding='utf-8') as cfgfile:
     config = json.load(cfgfile)
 
 logger = initLogger(config)
@@ -218,7 +205,7 @@ def readConfigFromXML(configFileName):
     try:
         xmldoc = minidom.parse(configFileName)
     except IOError:
-        print "config file " + configFileName + " not found"
+        print("config file " + configFileName + " not found")
         sys.exit(1)
     listOfOrigDirs = []    
     # print xmldoc.toxml().encode("utf-8")
