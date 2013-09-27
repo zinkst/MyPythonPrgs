@@ -79,10 +79,10 @@ def createFileObjectsList(inputParams):
               logging.debug(FileObject.printOut(newFile))
               if newFile.foundOriginal == False:
                 notFoundFileObjects.append(newFile)
-                logging.info("no match found for: " + str(absCopiesOrigDateiName))
+                logging.info(newFile.findMethod.rjust(16) +" match found for: " + str(absCopiesOrigDateiName))
               else:
                 fileObjects.append(newFile) 
-                logging.info("   match found for: " + str(absCopiesOrigDateiName))
+                logging.info(newFile.findMethod.rjust(16) + " match found for: " + str(absCopiesOrigDateiName))
   return (fileObjects, notFoundFileObjects)
 
 ###########################################################################

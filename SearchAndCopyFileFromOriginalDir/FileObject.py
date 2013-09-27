@@ -60,6 +60,7 @@ directoryNameOnOriginalRelativeToRootDir = src/Alben/Keane/Under The Iron Sea
   directoryNameOnOriginalRelativeToRootDir = u""
   exifDateTimeString = None
   foundOriginal = False
+  findMethod = "no"
    
   def printOut(self):
     output = "\r\nfileBaseName = " + self.fileBaseName + \
@@ -72,6 +73,7 @@ directoryNameOnOriginalRelativeToRootDir = src/Alben/Keane/Under The Iron Sea
              "\r\ndateiNameOnOriginalRelativeToRootDir = " + self.dateiNameOnOriginalRelativeToRootDir + \
              "\r\ndirectoryNameOnOriginalRelativeToRootDir = " + self.directoryNameOnOriginalRelativeToRootDir + \
              "\r\exifDateTimeString = " + str(self.exifDateTimeString) + \
+             "\r\nfindMethod = " + self.findMethod + \
              "\r\nfoundOriginal = " + str(self.foundOriginal) + \
              "\r\nfileId = " + self.fileId + \
              "\r\n"
@@ -96,9 +98,12 @@ directoryNameOnOriginalRelativeToRootDir = src/Alben/Keane/Under The Iron Sea
     except KeyError:
         logging.debug("Image " + self.absCopiesOrigDateiName +" does not have exiv date time")
         self.exifDateTimeString = ""
+    except:
+        logging.debug("Fatal error " + self.absCopiesOrigDateiName +" does not have exiv date time")
+        self.exifDateTimeString = ""
     found = self.findFileInDirsExact(originalFilesDict)
     # TODO handle mutiple hits
-    logging.debug("Found Exact Match = ") , found
+    logging.debug("Found Exact Match for: "+ self.fileBaseName)
     if found == False:
       found = self.findFileInDirsFuzzy(originalFilesDict)
 
@@ -120,6 +125,7 @@ directoryNameOnOriginalRelativeToRootDir = src/Alben/Keane/Under The Iron Sea
       if self.fileBaseName in originalFilesDict:
           self.absDateiNameOnOriginal = originalFilesDict[self.fileBaseName]
           self.foundOriginal = True
+          self.findMethod="Exact"
       else:
             self.foundOriginal = False   
       return self.foundOriginal        
@@ -132,6 +138,7 @@ directoryNameOnOriginalRelativeToRootDir = src/Alben/Keane/Under The Iron Sea
           if match != None:
             self.absDateiNameOnOriginal = originalFilesDict[curOrigFileName]
             self.foundOriginal = True
+            self.findMethod="CaseInsensitive"
             break
           else:
             curOrigFileId = curOrigFileName.rsplit('_',1)[0]  
@@ -144,6 +151,7 @@ directoryNameOnOriginalRelativeToRootDir = src/Alben/Keane/Under The Iron Sea
             logging.debug("fuzzy method 1: "+ selfFileIdNormalized +" == " +curOrigFileIdNormalized )
             if selfFileIdNormalized == curOrigFileIdNormalized:
               self.absDateiNameOnOriginal = originalFilesDict[curOrigFileName]
+              self.findMethod="Fuzzy 1"
               self.foundOriginal = True
             else:
                 #20100320100413FamilieZinkbeimPhotograph.jpg
@@ -154,12 +162,14 @@ directoryNameOnOriginalRelativeToRootDir = src/Alben/Keane/Under The Iron Sea
                 if selfFileIdNormalized == curOrigFileIdNormalized:
                   self.absDateiNameOnOriginal = originalFilesDict[curOrigFileName]
                   self.foundOriginal = True
+                  self.findMethod="Fuzzy 3"
                 else:
                    #20050907_123010_RadtourWildbadKreuthStrandRottachEgern.jpg ==  20050907_20RadtourWildbadKreuthStrandRottachEgern.JPG  
                    #nur mit exiv date zu lösen benutze gexiv library
-                   logging.debug("fuzzy method 3 (exiv): "+ self.exifDateTimeString +" == " +curOrigFileIdNormalized )
+                   logging.debug("fuzzy method 3 (exiv)"+ self.exifDateTimeString +" == " +curOrigFileIdNormalized )
                    if self.exifDateTimeString == curOrigFileIdNormalized:
                        self.absDateiNameOnOriginal = originalFilesDict[curOrigFileName]
+                       self.findMethod="ExivDate"
                        self.foundOriginal = True
       return self.foundOriginal        
 
