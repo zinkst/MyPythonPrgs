@@ -21,6 +21,7 @@ from xml.dom import minidom
 from xml.dom import Node
 import codecs
 import json
+import yaml
 import shutil
 from FileObject import FileObject
 import time,datetime
@@ -103,17 +104,6 @@ def createFileObjectsList(inputParams):
 
 ###########################################################################
 def processFileObjects(fileObjects,inputParams):
-  """
-fileBaseName = 03_Rosenrot.mp3
-absCopiesOrigDateiName = /home/zinks/Stefan/myPrg/MyPythonPrgs/SearchAndCopyFileFromOriginalDir/testdata/test/car/010MP3CAR/02_Rammstein_Rosenrot/03_Rosenrot.mp3
-copiesPathRelativeToRootDir = test/car/010MP3CAR/02_Rammstein_Rosenrot/03_Rosenrot.mp3
-copiesDirRelativeToRootDir = test/car/010MP3CAR/02_Rammstein_Rosenrot
-copiesTgtDirRelativeToRootDir = test/car_new/MP3CAR/02_Rammstein_Rosenrot
-copiesLinkDepthToBaseDir = 4
-absDateiNameOnOriginal = /home/zinks/Stefan/myPrg/MyPythonPrgs/SearchAndCopyFileFromOriginalDir/testdata/src/Alben/Rammstein/Rosenrot/03_Rosenrot.mp3
-dateiNameOnOriginalRelativeToRootDir = src/Alben/Rammstein/Rosenrot/03_Rosenrot.mp3
-directoryNameOnOriginalRelativeToRootDir = src/Alben/Rammstein/Rosenrot
-  """
   outFilePath = os.path.join(inputParams['ROOT-DIR'], inputParams['COPIES-TGT-DIR'])
   os.makedirs(outFilePath,exist_ok=True)  # ,'0775')
   with open(os.path.join(outFilePath,"FoundFiles.txt"), 'w') as outfile:
@@ -183,8 +173,8 @@ def processNotFoundFiles(notFoundFileObjects):
 
 if len(sys.argv) == 1 :
     print(description)
-    print(sys.argv[0] + "<json_configfile>")
-    configFileName = 'SearchAndCopyFileFromOriginalDir_Photos.json'
+    print(sys.argv[0] + "<configfile>")
+    configFileName = 'SearchAndCopyFileFromOriginalDir_Photos.yaml'
 else:
     configFileName = sys.argv[1]
 
@@ -193,9 +183,14 @@ else:
 #with open(configFileName, 'r') as cfgfile:
 # Python3 
 with open(configFileName, 'r',encoding='utf-8') as cfgfile:
-    config = json.load(cfgfile)
-
+    #config = json.load(cfgfile)
+    config = yaml.load(cfgfile)
 logger = initLogger(config)
+
+#yamlFileName = 'SearchAndCopyFileFromOriginalDir_Photos.yaml'
+#with open(yamlFileName, 'w', encoding='utf-8') as outFile:
+#   outFile.write(yaml.dump(config))
+#exit(0)       
 
 configuration = config["configuration"]  
 inputParams = config[configuration]
