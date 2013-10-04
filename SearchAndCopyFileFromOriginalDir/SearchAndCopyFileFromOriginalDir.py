@@ -55,6 +55,16 @@ def createFileObjectsList(inputParams):
   fileObjects = []
   notFoundFileObjects = []
   originalFilesDict = {}
+  # create searchPattern from extensions
+  searchPattern = r"("
+  for i in range (0,len(config['searchExtension'])):
+      if i == 0:
+          searchPattern = searchPattern + "\." + config['searchExtension'][i] 
+      else:
+          searchPattern = searchPattern + "|" + "\." + config['searchExtension'][i]
+  searchPattern = searchPattern + ")"    
+  logging.info("searchPattern :" + searchPattern )
+      
   # create dictionary with original files to improve performance
   for relDirName in inputParams["ORIGINALS-DIRS"]:
       dirName = os.path.join(inputParams["ROOT-DIR"], relDirName)
@@ -63,7 +73,7 @@ def createFileObjectsList(inputParams):
   #      logging.debug(" dirList = " + str(dirList) )
   #      logging.debug(" fileList = " + str(fileList))
         for file in fileList:
-            result = re.search('\\'+config['searchExtension'], file, re.IGNORECASE)
+            result = re.search(searchPattern, file, re.IGNORECASE)
             if result != None:
                 origFileDict = {}
                 origFileDict['absOrigFileName']=os.path.join(dir, file)
@@ -74,7 +84,7 @@ def createFileObjectsList(inputParams):
       logging.debug(" verzList = " + str(verzList))
       logging.debug(" dateiListe = " + str(dateiListe))
       for datei in dateiListe:
-          resultRE2 = re.search('\\'+config['searchExtension'], datei, re.IGNORECASE)
+          resultRE2 = re.search(searchPattern, datei, re.IGNORECASE)
           if resultRE2 != None:
               absCopiesOrigDateiName = os.path.join(verz, datei)
               logging.debug(" absCopiesOrigDateiName = " + str(absCopiesOrigDateiName))
@@ -108,29 +118,37 @@ directoryNameOnOriginalRelativeToRootDir = src/Alben/Rammstein/Rosenrot
   os.makedirs(outFilePath,exist_ok=True)  # ,'0775')
   with open(os.path.join(outFilePath,"FoundFiles.txt"), 'w') as outfile:
       for fileObject in fileObjects:
-          logging.debug("calling   os.chdir(" + fileObject.ip['ROOT-DIR'] + ")")
-          newTgtDir = os.path.join(fileObject.ip['ROOT-DIR'], fileObject.copiesTgtDirRelativeToRootDir)
-          if  not os.path.exists(newTgtDir):
-              logging.debug("calling   os.makedirs(" + newTgtDir + ",'0775')")
+          try:
+              newTgtDir = os.path.join(fileObject.ip['ROOT-DIR'], fileObject.copiesTgtDirRelativeToRootDir)
+              if  not os.path.exists(newTgtDir):
+                  logging.debug("calling   os.makedirs(" + newTgtDir + ",'0775')")
+                  if inputParams["SIMULATE"] == False: 
+                      os.makedirs(newTgtDir)  # ,'0775')
+              # os.chdir(fileObject.ROOT-DIR)
+                
+              logging.debug("calling os.chdir(" + newTgtDir + ")")
               if inputParams["SIMULATE"] == False: 
-                  os.makedirs(newTgtDir)  # ,'0775')
-          # os.chdir(fileObject.ROOT-DIR)
-            
-          logging.debug("calling os.chdir(" + newTgtDir + ")")
-          if inputParams["SIMULATE"] == False: 
-            os.chdir(newTgtDir)
+                os.chdir(newTgtDir)
+              
+              #newRelLink = os.path.join("../"*fileObject.copiesLinkDepthToBaseDir, fileObject.dateiNameOnOriginalRelativeToRootDir)
+              #logging.debug("checking os.symlink(" + newRelLink + "," + fileObject.fileBaseName + ")")
+              newAbsLink = os.path.join(fileObject.ip['ROOT-DIR'], fileObject.dateiNameOnOriginalRelativeToRootDir)
+              logging.debug("checking os.symlink(" + newAbsLink + "," + fileObject.fileBaseName + ")")
+              if  not os.path.exists(fileObject.fileBaseName):
+                #logging.debug("calling os.symlink(" + newRelLink + "," + fileObject.fileBaseName + ")")
+                logging.debug("calling os.link(" + newAbsLink + "," + fileObject.fileBaseName + ")")
+                if inputParams["SIMULATE"] == False: 
+                  # os.symlink(newRelLink,fileObject.fileBaseName)
+                  if config['linkType'] == 'hard':
+                      os.link(newAbsLink, fileObject.fileBaseName)
+                  else:
+                      os.symlink(newAbsLink, fileObject.fileBaseName)  
+                      
+          except (OSError,IOError):
+              logging.error("error in processing " + fileObject.printOut())
+              logging.error("continuing .... ")
+              
           
-          #newRelLink = os.path.join("../"*fileObject.copiesLinkDepthToBaseDir, fileObject.dateiNameOnOriginalRelativeToRootDir)
-          #logging.debug("checking os.symlink(" + newRelLink + "," + fileObject.fileBaseName + ")")
-          newAbsLink = os.path.join(fileObject.ip['ROOT-DIR'], fileObject.dateiNameOnOriginalRelativeToRootDir)
-          logging.debug("checking os.symlink(" + newAbsLink + "," + fileObject.fileBaseName + ")")
-          if  not os.path.exists(fileObject.fileBaseName):
-            #logging.debug("calling os.symlink(" + newRelLink + "," + fileObject.fileBaseName + ")")
-            logging.debug("calling os.link(" + newAbsLink + "," + fileObject.fileBaseName + ")")
-            if inputParams["SIMULATE"] == False: 
-              # os.symlink(newRelLink,fileObject.fileBaseName)
-              #os.symlink(newAbsLink, fileObject.fileBaseName)  
-              os.link(newAbsLink, fileObject.fileBaseName)  
           outLine = fileObject.findMethod.rjust(16) +":" + fileObject.fileBaseName.rjust(60) + " == " + os.path.basename(fileObject.absDateiNameOnOriginal) + " ## " + fileObject.absCopiesOrigDateiName + " == " + fileObject.absDateiNameOnOriginal 
           logging.debug("outLine=" + outLine)
           outfile.write(outLine + '\n')
