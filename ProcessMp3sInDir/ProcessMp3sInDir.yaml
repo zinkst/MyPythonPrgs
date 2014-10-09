@@ -1,0 +1,7 @@
+loglevel: DEBUG
+#loglevel: INFO
+srcDirName: /home/zinks/workspace/MyPythonPrgs/ProcessMp3sInDir/testdata/src
+tgtDirName: /home/zinks/workspace/MyPythonPrgs/ProcessMp3sInDir/testdata/tgt
+toolName: cp
+toolOptions: -prv
+fileFilter: "*.mp3*" 
