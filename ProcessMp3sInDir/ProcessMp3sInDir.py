@@ -58,15 +58,57 @@ def initLogger(inputParams):
 
 
 ############################################################################
-def processFile(srcCompleteFileName, toolName, toolOptions):
+def processFile(srcCompleteFileName, toolName, toolOptions,foundNoRating,foundWithRating):
     f = taglib.File(srcCompleteFileName)
-    logging.debug(srcCompleteFileName)
-    logging.debug(f.tags)
+    # {'TITLE': ['Foot of the mountain'], 'FMPS_RATING': ['0.8'], 'TRACKNUMBER': ['04/10'], 'COMMENT': ['Created with EAC/REACT v2.0.akku.b03, 2010-01-13'], 'FMPS_RATING_AMAROK_SCORE': ['0.0975'], 'REPLAYGAIN_TRACK_PEAK': ['0.557932'], 'ALBUM': ['Foot of the mountain'], 'ENCODING': ['LAME 3.97 -V2 --vbr-new --noreplaygain --nohist'], 'MP3GAIN_ALBUM_MINMAX': ['136,251'], 'ARTIST': ['A-HA'], 'REPLAYGAIN_ALBUM_GAIN': ['-3.470000'], 'MP3GAIN_UNDO': ['+004,+004,N'], 'MP3GAIN_MINMAX': ['138,251'], 'REPLAYGAIN_ALBUM_PEAK': ['0.606102'], 'COMMENT:ID3V1 COMMENT': ['Created with EAC/REACT v2.0.'], 'REPLAYGAIN_TRACK_GAIN': ['-4.040000 dB'], 'GENRE': ['Pop'], 'DATE': ['2009'], 'ENCODEDBY': ['SZ']}
+    # {'FMPS_RATING': ['0.8'],  'FMPS_RATING_AMAROK_SCORE': ['0.0975'] }
+    os.chdir(os.path.dirname(srcCompleteFileName))
+    logging.debug("working dir: " + os.getcwd())
+    if 'FMPS_RATING' in f.tags:
+      logging.debug("Rating set for " + srcCompleteFileName)
+      logging.debug(str(f.tags['FMPS_RATING']) + str(f.tags))
+      new_entry={'srcCompleteFileName' : srcCompleteFileName , 'FMPS_RATING' : f.tags['FMPS_RATING'], 'TITLE' : f.tags['TITLE'], 'ARTIST' : f.tags['ARTIST'] }
+      foundWithRating.append(new_entry)
+      if not ('FMPS_RATING_AMAROK_SCORE' in f.tags):
+        logging.debug("no amarok Rating set for " + srcCompleteFileName)
+        #f.tags['FMPS_RATING_AMAROK_SCORE']=f.tags['FMPS_RATING']
+        #f.save()
+    else:   
+      logging.debug("No Rating set for " + srcCompleteFileName)
+      logging.debug(f.tags)
+      new_entry={'srcCompleteFileName' : srcCompleteFileName , 'TITLE' : f.tags['TITLE'], 'ARTIST' : f.tags['ARTIST'] }
+      foundNoRating.append(new_entry)
+      
+      #f.tags['FMPS_RATING']='0.2'
+      #f.save()
+      #logging.debug(f.tags['FMPS_RATING'])
+      
+    
     #command = "%s %s %s >%s" % (toolName,toolOptions,srcCompleteFileName,tgtCompleteFileName)
     #print (command)
     #os.system(command)
+############################################################################
+def processFoundDicts(inputParams, logging,foundNoRating,foundWithRating):
+  WithRatingFileName=os.path.join(inputParams['tgtDirName'], 'foundWithRating.lst')
+  logging.debug("WithRatingFileName = " + WithRatingFileName)
+  with open(WithRatingFileName, 'w') as withRatingfile:
+     for entry in foundWithRating:
+       output=(str(entry['FMPS_RATING']) + '|' + str(entry['ARTIST']) + '|' + str(entry['TITLE']) + '|' + str(entry['srcCompleteFileName']) )
+       logging.debug(output)
+       withRatingfile.write(output + '\n') 
+  NoRatingFileName=os.path.join(inputParams['tgtDirName'], 'NoRating.lst')
+  logging.debug("NoRatingFileName = " + NoRatingFileName)
+  with open(NoRatingFileName, 'w') as noRatingFile:
+     for entry in foundNoRating:
+       output=(str(entry['ARTIST']) + '|' + str(entry['TITLE']) + '|' + str(entry['srcCompleteFileName']) )
+       logging.debug(output)
+       noRatingFile.write(output+ '\n')
 
+
+############################################################################
 def processDir(inputParams, logging):
+  foundNoRating = []
+  foundWithRating = []
   for Verz, VerzList, DateiListe in os.walk(inputParams["srcDirName"]):
     logging.debug(" VerzList = " + str(VerzList))
     logging.debug(" DateiListe = " + str(DateiListe))
@@ -75,8 +117,8 @@ def processDir(inputParams, logging):
       logging.debug(" srcCompleteFileName  = " + srcCompleteFileName) 
       if fnmatch.fnmatch(srcCompleteFileName, inputParams["fileFilter"]):
         #tgtCompleteFileName = findTGTFileName(srcCompleteFileName, inputParams["srcDirName"],inputParams["tgtDirName"])
-        processFile(srcCompleteFileName, inputParams["toolName"],inputParams["toolOptions"])
-
+        processFile(srcCompleteFileName, inputParams["toolName"],inputParams["toolOptions"],foundNoRating,foundWithRating)
+  processFoundDicts(inputParams, logging,foundNoRating,foundWithRating) 
 
 ############################################################################
 # main starts here

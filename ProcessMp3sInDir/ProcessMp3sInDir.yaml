@@ -1,7 +1,9 @@
 loglevel: DEBUG
 #loglevel: INFO
-srcDirName: /home/zinks/workspace/MyPythonPrgs/ProcessMp3sInDir/testdata/src
+srcDirName: /home/zinks/workspace/MyPythonPrgs/ProcessMp3sInDir/testdata/src/car_links
+#srcDirName: /links/Musik/car_links/001MP3CAR_KlassikHardRock/01Accept_Staying A Life
+#srcDirName: /links/Musik/Sammlung/Stefans CDs/Accept/Staying A Life
 tgtDirName: /home/zinks/workspace/MyPythonPrgs/ProcessMp3sInDir/testdata/tgt
 toolName: cp
 toolOptions: -prv
-fileFilter: "*.mp3*" 
+fileFilter: "*.mp3" 
