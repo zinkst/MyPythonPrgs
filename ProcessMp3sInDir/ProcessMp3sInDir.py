@@ -26,21 +26,6 @@ import taglib # https://pypi.python.org/pypi/pytaglib
 
 
 
-############################################################################
-def findTGTFileName(srcCompleteFileName,srcDirName,tgtDirName):
-    logging.debug(" srcCompleteFileName = " + srcCompleteFileName)
-    logging.debug(" srcDirName = " + srcDirName)
-    logging.debug(" tgtDirName = " + tgtDirName)
-    #fileName = os.path.basename(srcCompleteFileName)
-    srcRelativePathName=srcCompleteFileName[len(srcDirName):]
-    logging.debug(" srcRelativePathName = " + srcRelativePathName)
-    tgtCompleteFileName = tgtDirName +srcRelativePathName
-    logging.debug(" tgtCompleteFileName = " + tgtCompleteFileName)
-    (tgtSubdirName,tail)=os.path.split(tgtCompleteFileName)
-    logging.debug(" tgtSubdirName = " + tgtDirName)
-    if not os.path.exists(tgtSubdirName):
-        os.makedirs(tgtSubdirName, 0o775)
-    return tgtCompleteFileName
      
 ############################################################################
 def initLogger(inputParams):
@@ -58,11 +43,11 @@ def initLogger(inputParams):
 
 
 ############################################################################
-def processFile(srcCompleteFileName, toolName, toolOptions,foundNoRating,foundWithRating):
-    f = taglib.File(srcCompleteFileName)
+def tagFoundButUnratedFile(srcCompleteFileName, toolName, toolOptions,foundNoRating,foundWithRating):
     # {'TITLE': ['Foot of the mountain'], 'FMPS_RATING': ['0.8'], 'TRACKNUMBER': ['04/10'], 'COMMENT': ['Created with EAC/REACT v2.0.akku.b03, 2010-01-13'], 'FMPS_RATING_AMAROK_SCORE': ['0.0975'], 'REPLAYGAIN_TRACK_PEAK': ['0.557932'], 'ALBUM': ['Foot of the mountain'], 'ENCODING': ['LAME 3.97 -V2 --vbr-new --noreplaygain --nohist'], 'MP3GAIN_ALBUM_MINMAX': ['136,251'], 'ARTIST': ['A-HA'], 'REPLAYGAIN_ALBUM_GAIN': ['-3.470000'], 'MP3GAIN_UNDO': ['+004,+004,N'], 'MP3GAIN_MINMAX': ['138,251'], 'REPLAYGAIN_ALBUM_PEAK': ['0.606102'], 'COMMENT:ID3V1 COMMENT': ['Created with EAC/REACT v2.0.'], 'REPLAYGAIN_TRACK_GAIN': ['-4.040000 dB'], 'GENRE': ['Pop'], 'DATE': ['2009'], 'ENCODEDBY': ['SZ']}
     # {'FMPS_RATING': ['0.8'],  'FMPS_RATING_AMAROK_SCORE': ['0.0975'] }
     os.chdir(os.path.dirname(srcCompleteFileName))
+    f = taglib.File(srcCompleteFileName)
     logging.debug("working dir: " + os.getcwd())
     if 'FMPS_RATING' in f.tags:
       logging.debug("Rating set for " + srcCompleteFileName)
@@ -75,14 +60,13 @@ def processFile(srcCompleteFileName, toolName, toolOptions,foundNoRating,foundWi
         #f.save()
     else:   
       logging.debug("No Rating set for " + srcCompleteFileName)
-      logging.debug(f.tags)
       new_entry={'srcCompleteFileName' : srcCompleteFileName , 'TITLE' : f.tags['TITLE'], 'ARTIST' : f.tags['ARTIST'] }
       foundNoRating.append(new_entry)
       
-      #f.tags['FMPS_RATING']='0.2'
-      #f.save()
-      #logging.debug(f.tags['FMPS_RATING'])
-      
+      f.tags['FMPS_RATING']='0.2'
+      f.save()
+      logging.debug(f.tags)
+            
     
     #command = "%s %s %s >%s" % (toolName,toolOptions,srcCompleteFileName,tgtCompleteFileName)
     #print (command)
@@ -115,11 +99,32 @@ def processDir(inputParams, logging):
     for Datei in sorted(DateiListe):
       srcCompleteFileName = os.path.join(Verz, Datei)
       logging.debug(" srcCompleteFileName  = " + srcCompleteFileName) 
-      if fnmatch.fnmatch(srcCompleteFileName, inputParams["fileFilter"]):
-        #tgtCompleteFileName = findTGTFileName(srcCompleteFileName, inputParams["srcDirName"],inputParams["tgtDirName"])
-        processFile(srcCompleteFileName, inputParams["toolName"],inputParams["toolOptions"],foundNoRating,foundWithRating)
-  processFoundDicts(inputParams, logging,foundNoRating,foundWithRating) 
+      if fnmatch.fnmatch(srcCompleteFileName, '*.' + inputParams["fileFilter"]):
+        #tgtCompleteFileName = findTGTFileName(srcCompleteFileName, inputParams["linkDirName"],inputParams["tgtDirName"])
+        #tagFoundButUnratedFile(srcCompleteFileName, inputParams["toolName"],inputParams["toolOptions"],foundNoRating,foundWithRating)
+        copyRatedMp3ToTgtDir(srcCompleteFileName,inputParams)
+  #processFoundDicts(inputParams, logging,foundNoRating,foundWithRating) 
 
+############################################################################
+def copyRatedMp3ToTgtDir(srcCompleteFileName,inputParams):
+    # {'TITLE': ['Foot of the mountain'], 'FMPS_RATING': ['0.8'], 'TRACKNUMBER': ['04/10'], 'COMMENT': ['Created with EAC/REACT v2.0.akku.b03, 2010-01-13'], 'FMPS_RATING_AMAROK_SCORE': ['0.0975'], 'REPLAYGAIN_TRACK_PEAK': ['0.557932'], 'ALBUM': ['Foot of the mountain'], 'ENCODING': ['LAME 3.97 -V2 --vbr-new --noreplaygain --nohist'], 'MP3GAIN_ALBUM_MINMAX': ['136,251'], 'ARTIST': ['A-HA'], 'REPLAYGAIN_ALBUM_GAIN': ['-3.470000'], 'MP3GAIN_UNDO': ['+004,+004,N'], 'MP3GAIN_MINMAX': ['138,251'], 'REPLAYGAIN_ALBUM_PEAK': ['0.606102'], 'COMMENT:ID3V1 COMMENT': ['Created with EAC/REACT v2.0.'], 'REPLAYGAIN_TRACK_GAIN': ['-4.040000 dB'], 'GENRE': ['Pop'], 'DATE': ['2009'], 'ENCODEDBY': ['SZ']}
+    sep='_'
+    #logging.debug(" srcCompleteFileName = " + srcCompleteFileName)
+    #logging.debug(" tgtDirName = " + inputParams["tgtDirName"])
+    os.chdir(os.path.dirname(srcCompleteFileName))
+    f = taglib.File(srcCompleteFileName)
+    logging.debug(f.tags)
+    if 'FMPS_RATING' in f.tags:
+        tgtFullDirName=os.path.join(inputParams["tgtDirName"],f.tags['ARTIST'][0])   
+        if not os.path.exists(tgtFullDirName):
+            logging.debug("Creating" + tgtFullDirName)
+            os.makedirs(tgtFullDirName, 0o775)
+        tgtFileName=f.tags['TRACKNUMBER'][0].split('/')[0]+sep+f.tags['ALBUM'][0]+sep+f.tags['TITLE'][0]+'.'+ inputParams["fileFilter"]
+        tgtCompleteFilename=os.path.join(tgtFullDirName,tgtFileName)
+        logging.debug(srcCompleteFileName + " => " + tgtCompleteFilename)
+        shutil.copy(srcCompleteFileName,tgtCompleteFilename)
+    else:
+        logging.debug("untagged file " + srcCompleteFileName)
 ############################################################################
 # main starts here
 # global variables
