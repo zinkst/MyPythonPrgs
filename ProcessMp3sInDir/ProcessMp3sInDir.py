@@ -57,13 +57,15 @@ def tagFoundButUnratedFile(srcCompleteFileName, toolName, toolOptions,foundNoRat
       if not ('FMPS_RATING_AMAROK_SCORE' in f.tags):
         logging.debug("no amarok Rating set for " + srcCompleteFileName)
         f.tags['FMPS_RATING_AMAROK_SCORE']=f.tags['FMPS_RATING']
-      #f.save()
     else:   
       logging.debug("No Rating set for " + srcCompleteFileName)
       new_entry={'srcCompleteFileName' : srcCompleteFileName , 'TITLE' : f.tags['TITLE'], 'ARTIST' : f.tags['ARTIST'] }
       foundNoRating.append(new_entry)
       f.tags['FMPS_RATING']='0.2'
-    f.tags['SZ_CARDIR']=inputParams['srcDirName'][23:32]
+    inputParams['srcDirName']='/links/Musik/car_links/001MP3CAR_KlassikHardRock/01Accept_Staying A Life'
+    MP3CARidx=inputParams['srcDirName'].find('MP3CAR') 
+    szCarDir=inputParams['srcDirName'][MP3CARidx-3:MP3CARidx]
+    f.tags['SZ_CARDIR']=szCarDir
     f.save()
     logging.debug(f.tags)
     #command = "%s %s %s >%s" % (toolName,toolOptions,srcCompleteFileName,tgtCompleteFileName)
@@ -100,8 +102,8 @@ def processDir(inputParams, logging):
       logging.debug(" srcCompleteFileName  = " + srcCompleteFileName) 
       if fnmatch.fnmatch(srcCompleteFileName, '*.' + inputParams["fileFilter"]):
         #tgtCompleteFileName = findTGTFileName(srcCompleteFileName, inputParams["linkDirName"],inputParams["tgtDirName"])
-        #tagFoundButUnratedFile(srcCompleteFileName, inputParams["toolName"],inputParams["toolOptions"],foundNoRating,foundWithRating)
-        copyRatedMp3ToTgtDir(srcCompleteFileName,inputParams)
+        tagFoundButUnratedFile(srcCompleteFileName, inputParams["toolName"],inputParams["toolOptions"],foundNoRating,foundWithRating)
+        #copyRatedMp3ToTgtDir(srcCompleteFileName,inputParams)
   #processFoundDicts(inputParams, logging,foundNoRating,foundWithRating) 
 
 ############################################################################
