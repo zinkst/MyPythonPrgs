@@ -62,7 +62,6 @@ def tagFoundButUnratedFile(srcCompleteFileName, toolName, toolOptions,foundNoRat
       new_entry={'srcCompleteFileName' : srcCompleteFileName , 'TITLE' : f.tags['TITLE'], 'ARTIST' : f.tags['ARTIST'] }
       foundNoRating.append(new_entry)
       f.tags['FMPS_RATING']='0.2'
-    inputParams['srcDirName']='/links/Musik/car_links/001MP3CAR_KlassikHardRock/01Accept_Staying A Life'
     MP3CARidx=inputParams['srcDirName'].find('MP3CAR') 
     szCarDir=inputParams['srcDirName'][MP3CARidx-3:MP3CARidx]
     f.tags['SZ_CARDIR']=szCarDir
