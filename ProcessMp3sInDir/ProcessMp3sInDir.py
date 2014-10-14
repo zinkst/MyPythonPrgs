@@ -56,21 +56,20 @@ def tagFoundButUnratedFile(srcCompleteFileName, toolName, toolOptions,foundNoRat
       foundWithRating.append(new_entry)
       if not ('FMPS_RATING_AMAROK_SCORE' in f.tags):
         logging.debug("no amarok Rating set for " + srcCompleteFileName)
-        #f.tags['FMPS_RATING_AMAROK_SCORE']=f.tags['FMPS_RATING']
-        #f.save()
+        f.tags['FMPS_RATING_AMAROK_SCORE']=f.tags['FMPS_RATING']
+      #f.save()
     else:   
       logging.debug("No Rating set for " + srcCompleteFileName)
       new_entry={'srcCompleteFileName' : srcCompleteFileName , 'TITLE' : f.tags['TITLE'], 'ARTIST' : f.tags['ARTIST'] }
       foundNoRating.append(new_entry)
-      
       f.tags['FMPS_RATING']='0.2'
-      f.save()
-      logging.debug(f.tags)
-            
-    
+    f.tags['SZ_CARDIR']=inputParams['srcDirName'][23:32]
+    f.save()
+    logging.debug(f.tags)
     #command = "%s %s %s >%s" % (toolName,toolOptions,srcCompleteFileName,tgtCompleteFileName)
     #print (command)
     #os.system(command)
+
 ############################################################################
 def processFoundDicts(inputParams, logging,foundNoRating,foundWithRating):
   WithRatingFileName=os.path.join(inputParams['tgtDirName'], 'foundWithRating.lst')
@@ -119,10 +118,16 @@ def copyRatedMp3ToTgtDir(srcCompleteFileName,inputParams):
         if not os.path.exists(tgtFullDirName):
             logging.debug("Creating" + tgtFullDirName)
             os.makedirs(tgtFullDirName, 0o775)
-        tgtFileName=f.tags['TRACKNUMBER'][0].split('/')[0]+sep+f.tags['ALBUM'][0]+sep+f.tags['TITLE'][0]+'.'+ inputParams["fileFilter"]
+        if 'DISCNUMBER' in f.tags:
+            tgtFileName=f.tags['TRACKNUMBER'][0].split('/')[0]+sep+'D'+f.tags['DISCNUMBER'][0]+sep+f.tags['ALBUM'][0]+sep+f.tags['TITLE'][0]+'.'+ inputParams["fileFilter"]
+        else: 
+            tgtFileName=f.tags['TRACKNUMBER'][0].split('/')[0]+sep+f.tags['ALBUM'][0]+sep+f.tags['TITLE'][0]+'.'+ inputParams["fileFilter"]
         tgtCompleteFilename=os.path.join(tgtFullDirName,tgtFileName)
         logging.debug(srcCompleteFileName + " => " + tgtCompleteFilename)
-        shutil.copy(srcCompleteFileName,tgtCompleteFilename)
+        if not os.path.exists(tgtCompleteFilename):
+            shutil.copy(srcCompleteFileName,tgtCompleteFilename)
+        else:
+            logging.debug("already existing " +tgtCompleteFilename  )     
     else:
         logging.debug("untagged file " + srcCompleteFileName)
 ############################################################################
