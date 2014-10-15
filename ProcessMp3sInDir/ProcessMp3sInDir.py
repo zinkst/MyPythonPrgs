@@ -52,21 +52,21 @@ def tagFoundButUnratedFile(srcCompleteFileName, toolName, toolOptions,foundNoRat
     if 'FMPS_RATING' in f.tags:
       logging.debug("Rating set for " + srcCompleteFileName)
       logging.debug(str(f.tags['FMPS_RATING']) + str(f.tags))
-      new_entry={'srcCompleteFileName' : srcCompleteFileName , 'FMPS_RATING' : f.tags['FMPS_RATING'], 'TITLE' : f.tags['TITLE'], 'ARTIST' : f.tags['ARTIST'] }
+      new_entry={'srcCompleteFileName' : srcCompleteFileName , 'TAGS' : f.tags }
       foundWithRating.append(new_entry)
-      if not ('FMPS_RATING_AMAROK_SCORE' in f.tags):
-        logging.debug("no amarok Rating set for " + srcCompleteFileName)
-        f.tags['FMPS_RATING_AMAROK_SCORE']=f.tags['FMPS_RATING']
+ #     if not ('FMPS_RATING_AMAROK_SCORE#' in f.tags):
+ #       logging.debug("no amarok Rating set for " + srcCompleteFileName)
+ #      f.tags['FMPS_RATING_AMAROK_SCORE']=f.tags['FMPS_RATING']
     else:   
       logging.debug("No Rating set for " + srcCompleteFileName)
-      new_entry={'srcCompleteFileName' : srcCompleteFileName , 'TITLE' : f.tags['TITLE'], 'ARTIST' : f.tags['ARTIST'] }
+      new_entry={'srcCompleteFileName' : srcCompleteFileName , 'TAGS' : f.tags }
       foundNoRating.append(new_entry)
-      f.tags['FMPS_RATING']='0.2'
-    MP3CARidx=inputParams['srcDirName'].find('MP3CAR') 
-    szCarDir=inputParams['srcDirName'][MP3CARidx-3:MP3CARidx]
+      f.tags['FMPS_RATING']='0.4'
+    MP3CARidx=srcCompleteFileName.find('MP3CAR') 
+    szCarDir=srcCompleteFileName[MP3CARidx-3:MP3CARidx]
     f.tags['SZ_CARDIR']=szCarDir
     f.save()
-    logging.debug(f.tags)
+    #logging.debug(f.tags)
     #command = "%s %s %s >%s" % (toolName,toolOptions,srcCompleteFileName,tgtCompleteFileName)
     #print (command)
     #os.system(command)
@@ -77,23 +77,25 @@ def processFoundDicts(inputParams, logging,foundNoRating,foundWithRating):
   logging.debug("WithRatingFileName = " + WithRatingFileName)
   with open(WithRatingFileName, 'w') as withRatingfile:
      for entry in foundWithRating:
-       output=(str(entry['FMPS_RATING']) + '|' + str(entry['ARTIST']) + '|' + str(entry['TITLE']) + '|' + str(entry['srcCompleteFileName']) )
+       #output=(str(entry['FMPS_RATING']) + '|' + str(entry['ARTIST']) + '|' + str(entry['TITLE']) + '|' + str(entry['srcCompleteFileName']) )
+       output=(entry)
        logging.debug(output)
-       withRatingfile.write(output + '\n') 
+       withRatingfile.write(str(output) + '\n') 
   NoRatingFileName=os.path.join(inputParams['tgtDirName'], 'NoRating.lst')
   logging.debug("NoRatingFileName = " + NoRatingFileName)
   with open(NoRatingFileName, 'w') as noRatingFile:
      for entry in foundNoRating:
-       output=(str(entry['ARTIST']) + '|' + str(entry['TITLE']) + '|' + str(entry['srcCompleteFileName']) )
+       #output=(str(entry['ARTIST']) + '|' + str(entry['TITLE']) + '|' + str(entry['srcCompleteFileName']) )
+       output=(entry)
        logging.debug(output)
-       noRatingFile.write(output+ '\n')
-
+       noRatingFile.write(str(output)+ '\n')
 
 ############################################################################
-def processDir(inputParams, logging):
+def processDirFortagFoundButUnratedFile(inputParams, logging):
   foundNoRating = []
   foundWithRating = []
-  for Verz, VerzList, DateiListe in os.walk(inputParams["srcDirName"]):
+  inputParams["srcDirName"]=inputParams["linkDirName"]
+  for Verz, VerzList, DateiListe in os.walk(inputParams["linkDirName"]):
     logging.debug(" VerzList = " + str(VerzList))
     logging.debug(" DateiListe = " + str(DateiListe))
     for Datei in sorted(DateiListe):
@@ -103,8 +105,22 @@ def processDir(inputParams, logging):
         #tgtCompleteFileName = findTGTFileName(srcCompleteFileName, inputParams["linkDirName"],inputParams["tgtDirName"])
         tagFoundButUnratedFile(srcCompleteFileName, inputParams["toolName"],inputParams["toolOptions"],foundNoRating,foundWithRating)
         #copyRatedMp3ToTgtDir(srcCompleteFileName,inputParams)
-  #processFoundDicts(inputParams, logging,foundNoRating,foundWithRating) 
+  processFoundDicts(inputParams, logging,foundNoRating,foundWithRating) 
 
+
+############################################################################
+def processDirForCopyRatedMP3s(inputParams, logging):
+  foundNoRating = []
+  foundWithRating = []
+  for Verz, VerzList, DateiListe in os.walk(inputParams["srcDirName"]):
+    logging.debug(" VerzList = " + str(VerzList))
+    logging.debug(" DateiListe = " + str(DateiListe))
+    for Datei in sorted(DateiListe):
+      srcCompleteFileName = os.path.join(Verz, Datei)
+      logging.debug(" srcCompleteFileName  = " + srcCompleteFileName) 
+      if fnmatch.fnmatch(srcCompleteFileName, '*.' + inputParams["fileFilter"]):
+        copyRatedMp3ToTgtDir(srcCompleteFileName,inputParams)
+  
 ############################################################################
 def copyRatedMp3ToTgtDir(srcCompleteFileName,inputParams):
     # {'TITLE': ['Foot of the mountain'], 'FMPS_RATING': ['0.8'], 'TRACKNUMBER': ['04/10'], 'COMMENT': ['Created with EAC/REACT v2.0.akku.b03, 2010-01-13'], 'FMPS_RATING_AMAROK_SCORE': ['0.0975'], 'REPLAYGAIN_TRACK_PEAK': ['0.557932'], 'ALBUM': ['Foot of the mountain'], 'ENCODING': ['LAME 3.97 -V2 --vbr-new --noreplaygain --nohist'], 'MP3GAIN_ALBUM_MINMAX': ['136,251'], 'ARTIST': ['A-HA'], 'REPLAYGAIN_ALBUM_GAIN': ['-3.470000'], 'MP3GAIN_UNDO': ['+004,+004,N'], 'MP3GAIN_MINMAX': ['138,251'], 'REPLAYGAIN_ALBUM_PEAK': ['0.606102'], 'COMMENT:ID3V1 COMMENT': ['Created with EAC/REACT v2.0.'], 'REPLAYGAIN_TRACK_GAIN': ['-4.040000 dB'], 'GENRE': ['Pop'], 'DATE': ['2009'], 'ENCODEDBY': ['SZ']}
@@ -115,14 +131,29 @@ def copyRatedMp3ToTgtDir(srcCompleteFileName,inputParams):
     f = taglib.File(srcCompleteFileName)
     logging.debug(f.tags)
     if 'FMPS_RATING' in f.tags:
-        tgtFullDirName=os.path.join(inputParams["tgtDirName"],f.tags['ARTIST'][0])   
+        if 'ARTIST' in t.tags:
+            tgtFullDirName=os.path.join(inputParams["tgtDirName"],f.tags['ARTIST'][0])
+        else:
+            tgtFullDirName=os.path.join(inputParams["tgtDirName"],'UNBEKANNT')
         if not os.path.exists(tgtFullDirName):
             logging.debug("Creating" + tgtFullDirName)
             os.makedirs(tgtFullDirName, 0o775)
-        if 'DISCNUMBER' in f.tags:
-            tgtFileName=f.tags['TRACKNUMBER'][0].split('/')[0]+sep+'D'+f.tags['DISCNUMBER'][0]+sep+f.tags['ALBUM'][0]+sep+f.tags['TITLE'][0]+'.'+ inputParams["fileFilter"]
-        else: 
-            tgtFileName=f.tags['TRACKNUMBER'][0].split('/')[0]+sep+f.tags['ALBUM'][0]+sep+f.tags['TITLE'][0]+'.'+ inputParams["fileFilter"]
+        discnumber=None  
+        tracknumber=None
+        album=None  
+        if 'TRACKNUMBER' in f.tags: tracknumber=f.tags['TRACKNUMBER'][0].split('/')[0]
+        if 'DISCNUMBER' in f.tags: discnumber=f.tags['DISCNUMBER'][0]
+        if 'ALBUM' in f.tags: album=f.tags['ALBUM'][0]
+        if discnumber and tracknumber and album:
+             tgtFileName=tracknumber+sep+'D'+discnumber+sep+f.tags['ALBUM'][0]+sep+f.tags['TITLE'][0]+'.'+ inputParams["fileFilter"]
+        elif tracknumber and album:         
+            tgtFileName=tracknumber+sep+album+sep+f.tags['TITLE'][0]+'.'+ inputParams["fileFilter"]
+        elif tracknumber:         
+            tgtFileName=tracknumber+sep+f.tags['TITLE'][0]+'.'+ inputParams["fileFilter"]
+        elif album: 
+            tgtFileName=album+sep+f.tags['TITLE'][0]+'.'+ inputParams["fileFilter"]
+        else:
+            tgtFileName=f.tags['TITLE'][0]+'.'+ inputParams["fileFilter"]
         tgtCompleteFilename=os.path.join(tgtFullDirName,tgtFileName)
         logging.debug(srcCompleteFileName + " => " + tgtCompleteFilename)
         if not os.path.exists(tgtCompleteFilename):
@@ -153,7 +184,8 @@ logger = initLogger(inputParams)
 
 logging.debug(inputParams)
 
-processDir(inputParams, logging)
+#processDirFortagFoundButUnratedFile(inputParams, logging)
+processDirForCopyRatedMP3s(inputParams, logging)
             
 print ("successfully transfered %s " % inputParams["srcDirName"])
 
