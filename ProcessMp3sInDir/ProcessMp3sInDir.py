@@ -50,7 +50,7 @@ def tagFoundButUnratedFile(srcCompleteFileName, toolName, toolOptions,foundNoRat
     f = taglib.File(srcCompleteFileName)
     logging.debug("working dir: " + os.getcwd())
     if 'FMPS_RATING' in f.tags:
-      logging.debug("Rating set for " + srcCompleteFileName)
+      logging.info("Rating set for " + srcCompleteFileName)
       logging.debug(str(f.tags['FMPS_RATING']) + str(f.tags))
       new_entry={'srcCompleteFileName' : srcCompleteFileName , 'TAGS' : f.tags }
       foundWithRating.append(new_entry)
@@ -58,7 +58,7 @@ def tagFoundButUnratedFile(srcCompleteFileName, toolName, toolOptions,foundNoRat
  #       logging.debug("no amarok Rating set for " + srcCompleteFileName)
  #      f.tags['FMPS_RATING_AMAROK_SCORE']=f.tags['FMPS_RATING']
     else:   
-      logging.debug("No Rating set for " + srcCompleteFileName)
+      logging.info("No Rating set for " + srcCompleteFileName)
       new_entry={'srcCompleteFileName' : srcCompleteFileName , 'TAGS' : f.tags }
       foundNoRating.append(new_entry)
       f.tags['FMPS_RATING']='0.4'
@@ -79,7 +79,7 @@ def processFoundDicts(inputParams, logging,foundNoRating,foundWithRating):
      for entry in foundWithRating:
        #output=(str(entry['FMPS_RATING']) + '|' + str(entry['ARTIST']) + '|' + str(entry['TITLE']) + '|' + str(entry['srcCompleteFileName']) )
        output=(entry)
-       logging.debug(output)
+       logging.info(output)
        withRatingfile.write(str(output) + '\n') 
   NoRatingFileName=os.path.join(inputParams['tgtDirName'], 'NoRating.lst')
   logging.debug("NoRatingFileName = " + NoRatingFileName)
@@ -87,7 +87,7 @@ def processFoundDicts(inputParams, logging,foundNoRating,foundWithRating):
      for entry in foundNoRating:
        #output=(str(entry['ARTIST']) + '|' + str(entry['TITLE']) + '|' + str(entry['srcCompleteFileName']) )
        output=(entry)
-       logging.debug(output)
+       logging.info(output)
        noRatingFile.write(str(output)+ '\n')
 
 ############################################################################
@@ -119,10 +119,11 @@ def processDirForCopyRatedMP3s(inputParams, logging):
       srcCompleteFileName = os.path.join(Verz, Datei)
       logging.debug(" srcCompleteFileName  = " + srcCompleteFileName) 
       if fnmatch.fnmatch(srcCompleteFileName, '*.' + inputParams["fileFilter"]):
-        copyRatedMp3ToTgtDir(srcCompleteFileName,inputParams)
+        copyRatedMp3ToTgtDir(srcCompleteFileName,inputParams,foundNoRating,foundWithRating)
+  processFoundDicts(inputParams, logging,foundNoRating,foundWithRating) 
   
 ############################################################################
-def copyRatedMp3ToTgtDir(srcCompleteFileName,inputParams):
+def copyRatedMp3ToTgtDir(srcCompleteFileName,inputParams,foundNoRating,foundWithRating):
     # {'TITLE': ['Foot of the mountain'], 'FMPS_RATING': ['0.8'], 'TRACKNUMBER': ['04/10'], 'COMMENT': ['Created with EAC/REACT v2.0.akku.b03, 2010-01-13'], 'FMPS_RATING_AMAROK_SCORE': ['0.0975'], 'REPLAYGAIN_TRACK_PEAK': ['0.557932'], 'ALBUM': ['Foot of the mountain'], 'ENCODING': ['LAME 3.97 -V2 --vbr-new --noreplaygain --nohist'], 'MP3GAIN_ALBUM_MINMAX': ['136,251'], 'ARTIST': ['A-HA'], 'REPLAYGAIN_ALBUM_GAIN': ['-3.470000'], 'MP3GAIN_UNDO': ['+004,+004,N'], 'MP3GAIN_MINMAX': ['138,251'], 'REPLAYGAIN_ALBUM_PEAK': ['0.606102'], 'COMMENT:ID3V1 COMMENT': ['Created with EAC/REACT v2.0.'], 'REPLAYGAIN_TRACK_GAIN': ['-4.040000 dB'], 'GENRE': ['Pop'], 'DATE': ['2009'], 'ENCODEDBY': ['SZ']}
     sep='_'
     #logging.debug(" srcCompleteFileName = " + srcCompleteFileName)
@@ -131,7 +132,9 @@ def copyRatedMp3ToTgtDir(srcCompleteFileName,inputParams):
     f = taglib.File(srcCompleteFileName)
     logging.debug(f.tags)
     if 'FMPS_RATING' in f.tags:
-        if 'ARTIST' in t.tags:
+        new_entry={'srcCompleteFileName' : srcCompleteFileName , 'TAGS' : f.tags }
+        foundWithRating.append(new_entry)
+        if 'ARTIST' in f.tags:
             tgtFullDirName=os.path.join(inputParams["tgtDirName"],f.tags['ARTIST'][0])
         else:
             tgtFullDirName=os.path.join(inputParams["tgtDirName"],'UNBEKANNT')
@@ -142,26 +145,30 @@ def copyRatedMp3ToTgtDir(srcCompleteFileName,inputParams):
         tracknumber=None
         album=None  
         if 'TRACKNUMBER' in f.tags: tracknumber=f.tags['TRACKNUMBER'][0].split('/')[0]
-        if 'DISCNUMBER' in f.tags: discnumber=f.tags['DISCNUMBER'][0]
+        if 'DISCNUMBER' in f.tags: discnumber=f.tags['DISCNUMBER'][0].split('/')[0]
         if 'ALBUM' in f.tags: album=f.tags['ALBUM'][0]
         if discnumber and tracknumber and album:
-             tgtFileName=tracknumber+sep+'D'+discnumber+sep+f.tags['ALBUM'][0]+sep+f.tags['TITLE'][0]+'.'+ inputParams["fileFilter"]
+             tgtFileName=album+sep+'D'+discnumber+sep+f.tags['ALBUM'][0]+sep+tracknumber+sep+f.tags['TITLE'][0]+'.'+ inputParams["fileFilter"]
         elif tracknumber and album:         
-            tgtFileName=tracknumber+sep+album+sep+f.tags['TITLE'][0]+'.'+ inputParams["fileFilter"]
+            tgtFileName=album+sep+tracknumber+sep+f.tags['TITLE'][0]+'.'+ inputParams["fileFilter"]
         elif tracknumber:         
             tgtFileName=tracknumber+sep+f.tags['TITLE'][0]+'.'+ inputParams["fileFilter"]
         elif album: 
             tgtFileName=album+sep+f.tags['TITLE'][0]+'.'+ inputParams["fileFilter"]
         else:
             tgtFileName=f.tags['TITLE'][0]+'.'+ inputParams["fileFilter"]
+        tgtFileName=tgtFileName.replace('/','_') 
         tgtCompleteFilename=os.path.join(tgtFullDirName,tgtFileName)
-        logging.debug(srcCompleteFileName + " => " + tgtCompleteFilename)
+        logging.info(srcCompleteFileName + " => " + tgtCompleteFilename)
         if not os.path.exists(tgtCompleteFilename):
             shutil.copy(srcCompleteFileName,tgtCompleteFilename)
         else:
             logging.debug("already existing " +tgtCompleteFilename  )     
     else:
+        new_entry={'srcCompleteFileName' : srcCompleteFileName , 'TAGS' : f.tags }
+        foundNoRating.append(new_entry)
         logging.debug("untagged file " + srcCompleteFileName)
+
 ############################################################################
 # main starts here
 # global variables
