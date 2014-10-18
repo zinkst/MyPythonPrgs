@@ -43,36 +43,38 @@ def initLogger(inputParams):
 
 
 ############################################################################
-def tagFoundButUnratedFile(srcCompleteFileName, toolName, toolOptions,foundNoRating,foundWithRating):
+def tagFoundButUnratedFile(srcCompleteFileName, toolName, toolOptions,foundNoRating,foundWithRating,foundWithUpperCaseRating):
     # {'TITLE': ['Foot of the mountain'], 'FMPS_RATING': ['0.8'], 'TRACKNUMBER': ['04/10'], 'COMMENT': ['Created with EAC/REACT v2.0.akku.b03, 2010-01-13'], 'FMPS_RATING_AMAROK_SCORE': ['0.0975'], 'REPLAYGAIN_TRACK_PEAK': ['0.557932'], 'ALBUM': ['Foot of the mountain'], 'ENCODING': ['LAME 3.97 -V2 --vbr-new --noreplaygain --nohist'], 'MP3GAIN_ALBUM_MINMAX': ['136,251'], 'ARTIST': ['A-HA'], 'REPLAYGAIN_ALBUM_GAIN': ['-3.470000'], 'MP3GAIN_UNDO': ['+004,+004,N'], 'MP3GAIN_MINMAX': ['138,251'], 'REPLAYGAIN_ALBUM_PEAK': ['0.606102'], 'COMMENT:ID3V1 COMMENT': ['Created with EAC/REACT v2.0.'], 'REPLAYGAIN_TRACK_GAIN': ['-4.040000 dB'], 'GENRE': ['Pop'], 'DATE': ['2009'], 'ENCODEDBY': ['SZ']}
     # {'FMPS_RATING': ['0.8'],  'FMPS_RATING_AMAROK_SCORE': ['0.0975'] }
+    # pytaglib can only write  tags in uppercase
     os.chdir(os.path.dirname(srcCompleteFileName))
     f = taglib.File(srcCompleteFileName)
     logging.debug("working dir: " + os.getcwd())
     if 'FMPS_RATING' in f.tags:
-      logging.info("Rating set for " + srcCompleteFileName)
+      logging.info("Rating with wrong case set for " + srcCompleteFileName)
+      rating=f.tags['FMPS_RATING'][0]
       logging.debug(str(f.tags['FMPS_RATING']) + str(f.tags))
       new_entry={'srcCompleteFileName' : srcCompleteFileName , 'TAGS' : f.tags }
+      foundWithUpperCaseRating.append(new_entry)
+      # pytaglib can only write  tags in uppercase so these 2 lines below do not work
+      #del f.tags['FMPS_RATING']
+      #f.tags['FMPS_Rating']=rating    
+    elif 'FMPS_Rating' in f.tags:
+      logging.info("Rating set for " + srcCompleteFileName)
+      logging.debug(str(f.tags['FMPS_Rating']) + str(f.tags))
       foundWithRating.append(new_entry)
- #     if not ('FMPS_RATING_AMAROK_SCORE#' in f.tags):
- #       logging.debug("no amarok Rating set for " + srcCompleteFileName)
- #      f.tags['FMPS_RATING_AMAROK_SCORE']=f.tags['FMPS_RATING']
     else:   
       logging.info("No Rating set for " + srcCompleteFileName)
       new_entry={'srcCompleteFileName' : srcCompleteFileName , 'TAGS' : f.tags }
       foundNoRating.append(new_entry)
-      f.tags['FMPS_RATING']='0.4'
+      f.tags['FMPS_Rating']='0.4'
     MP3CARidx=srcCompleteFileName.find('MP3CAR') 
     szCarDir=srcCompleteFileName[MP3CARidx-3:MP3CARidx]
-    f.tags['SZ_CARDIR']=szCarDir
+    f.tags['SZ_CarDir']=szCarDir
     f.save()
-    #logging.debug(f.tags)
-    #command = "%s %s %s >%s" % (toolName,toolOptions,srcCompleteFileName,tgtCompleteFileName)
-    #print (command)
-    #os.system(command)
-
+ 
 ############################################################################
-def processFoundDicts(inputParams, logging,foundNoRating,foundWithRating):
+def processFoundDicts(inputParams, logging,foundNoRating,foundWithRating,foundWithUpperCaseRating):
   WithRatingFileName=os.path.join(inputParams['tgtDirName'], 'foundWithRating.lst')
   logging.debug("WithRatingFileName = " + WithRatingFileName)
   with open(WithRatingFileName, 'w') as withRatingfile:
@@ -89,11 +91,20 @@ def processFoundDicts(inputParams, logging,foundNoRating,foundWithRating):
        output=(entry)
        logging.info(output)
        noRatingFile.write(str(output)+ '\n')
+  UpperCaseRatingFileName=os.path.join(inputParams['tgtDirName'], 'UpperCaseRating.lst')
+  logging.debug("UpperCaseRatingFileName = " + UpperCaseRatingFileName)
+  with open(UpperCaseRatingFileName, 'w') as upperCaseRatingFile:
+     for entry in foundWithUpperCaseRating:
+       #output=(str(entry['ARTIST']) + '|' + str(entry['TITLE']) + '|' + str(entry['srcCompleteFileName']) )
+       output=(entry)
+       logging.info(output)
+       upperCaseRatingFile.write(str(output)+ '\n')
 
 ############################################################################
 def processDirFortagFoundButUnratedFile(inputParams, logging):
   foundNoRating = []
   foundWithRating = []
+  foundWithUpperCaseRating = []
   inputParams["srcDirName"]=inputParams["linkDirName"]
   for Verz, VerzList, DateiListe in os.walk(inputParams["linkDirName"]):
     logging.debug(" VerzList = " + str(VerzList))
@@ -103,9 +114,9 @@ def processDirFortagFoundButUnratedFile(inputParams, logging):
       logging.debug(" srcCompleteFileName  = " + srcCompleteFileName) 
       if fnmatch.fnmatch(srcCompleteFileName, '*.' + inputParams["fileFilter"]):
         #tgtCompleteFileName = findTGTFileName(srcCompleteFileName, inputParams["linkDirName"],inputParams["tgtDirName"])
-        tagFoundButUnratedFile(srcCompleteFileName, inputParams["toolName"],inputParams["toolOptions"],foundNoRating,foundWithRating)
+        tagFoundButUnratedFile(srcCompleteFileName, inputParams["toolName"],inputParams["toolOptions"],foundNoRating,foundWithRating,foundWithUpperCaseRating)
         #copyRatedMp3ToTgtDir(srcCompleteFileName,inputParams)
-  processFoundDicts(inputParams, logging,foundNoRating,foundWithRating) 
+  processFoundDicts(inputParams, logging,foundNoRating,foundWithRating,foundWithUpperCaseRating) 
 
 
 ############################################################################
@@ -158,6 +169,11 @@ def copyRatedMp3ToTgtDir(srcCompleteFileName,inputParams,foundNoRating,foundWith
         else:
             tgtFileName=f.tags['TITLE'][0]+'.'+ inputParams["fileFilter"]
         tgtFileName=tgtFileName.replace('/','_') 
+        tgtFileName=tgtFileName.replace(':','_') 
+        tgtFileName=tgtFileName.replace('>','_') 
+        tgtFileName=tgtFileName.replace('<','_') 
+        tgtFileName=tgtFileName.replace('?','_') 
+        #tgtFileName=tgtFileName.replace('!','_') 
         tgtCompleteFilename=os.path.join(tgtFullDirName,tgtFileName)
         logging.info(srcCompleteFileName + " => " + tgtCompleteFilename)
         if not os.path.exists(tgtCompleteFilename):
