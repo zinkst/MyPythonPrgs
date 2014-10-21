@@ -19,7 +19,10 @@ import logging.config
 import json
 import yaml
 import taglib # https://pypi.python.org/pypi/pytaglib
-
+from mutagen.mp3 import MP3 # https://code.google.com/p/mutagen/wiki/Tutorial
+from mutagen.id3 import ID3, TIT2, TALB, TPE1, TPE2, COMM, USLT, TCOM, TCON, TDRC,TXXX, POPM
+from mutagen.easyid3 import EasyID3
+import math
 #from xml import dom
 #from xml.dom import minidom
 #from xml.dom import Node
@@ -49,7 +52,9 @@ def tagFoundButUnratedFile(srcCompleteFileName, toolName, toolOptions,foundNoRat
     # pytaglib can only write  tags in uppercase
     os.chdir(os.path.dirname(srcCompleteFileName))
     f = taglib.File(srcCompleteFileName)
+    mutID3 = ID3(srcCompleteFileName)
     logging.debug("working dir: " + os.getcwd())
+    rating='0.4'
     if 'FMPS_RATING' in f.tags:
       logging.info("Rating with wrong case set for " + srcCompleteFileName)
       rating=f.tags['FMPS_RATING'][0]
@@ -57,21 +62,29 @@ def tagFoundButUnratedFile(srcCompleteFileName, toolName, toolOptions,foundNoRat
       new_entry={'srcCompleteFileName' : srcCompleteFileName , 'TAGS' : f.tags }
       foundWithUpperCaseRating.append(new_entry)
       # pytaglib can only write  tags in uppercase so these 2 lines below do not work
-      #del f.tags['FMPS_RATING']
-      #f.tags['FMPS_Rating']=rating    
+      del f.tags['FMPS_RATING']
+      mutID3.delall('TXXX:FMPS_RATING')
+      mutID3.add(TXXX(encoding=3, desc='FMPS_Rating', text=rating))
+      # add xbmcratings see http://kodi.wiki/view/Adding_music_to_the_library#Ratings_in_ID3_tags
     elif 'FMPS_Rating' in f.tags:
       logging.info("Rating set for " + srcCompleteFileName)
       logging.debug(str(f.tags['FMPS_Rating']) + str(f.tags))
       foundWithRating.append(new_entry)
+      rating=f.tags['FMPS_Rating'][0]
     else:   
       logging.info("No Rating set for " + srcCompleteFileName)
       new_entry={'srcCompleteFileName' : srcCompleteFileName , 'TAGS' : f.tags }
       foundNoRating.append(new_entry)
-      f.tags['FMPS_Rating']='0.4'
+      mutID3.add(TXXX(encoding=3, desc='FMPS_Rating', text=u'0.4'))
+    xbmc_rating=math.trunc(float(rating)*5)
+    mutID3.add(TXXX(encoding=3, desc='RATING', text=str(xbmc_rating)))
+    popm_rating=math.trunc(float(rating)*255)
+    mutID3.add(POPM(rating=popm_rating))
     MP3CARidx=srcCompleteFileName.find('MP3CAR') 
     szCarDir=srcCompleteFileName[MP3CARidx-3:MP3CARidx]
-    f.tags['SZ_CarDir']=szCarDir
-    f.save()
+    mutID3.add(TXXX(encoding=3, desc='SZ_CarDir', text=szCarDir))
+    #f.tags['SZ_CarDir']=szCarDir
+    mutID3.save()
  
 ############################################################################
 def processFoundDicts(inputParams, logging,foundNoRating,foundWithRating,foundWithUpperCaseRating):
@@ -101,6 +114,36 @@ def processFoundDicts(inputParams, logging,foundNoRating,foundWithRating,foundWi
        upperCaseRatingFile.write(str(output)+ '\n')
 
 ############################################################################
+
+def testMutagen(logging, srcCompleteFileName):
+    audio = MP3(srcCompleteFileName, ID3=EasyID3)
+    logging.info(audio.pprint())
+#         MPEG 1 layer 3, 160000 bps, 44100 Hz, 270.63 seconds (audio/mp3)
+#         album=Odyssey
+#         artist=Yngwie J. Malmsteen's Rising Force
+#         date=1988
+#         genre=Hard Rock
+#         length=270628
+#         media=DIG
+#         title=Faster Than The Speed Of Light
+#         tracknumber=10/12
+    audio2 = ID3(srcCompleteFileName)
+#          {'TALB': TALB(encoding=3, text=['Odyssey']), 
+#           'TMED': TMED(encoding=0, text=['DIG']), 
+#           'TXXX:SZ_CARDIR': TXXX(encoding=3, desc='SZ_CARDIR', text=['001']),
+#           'TDRC': TDRC(encoding=3, text=['1988']), 
+#           'TLEN': TLEN(encoding=0, text=['270628']),
+#           'TCON': TCON(encoding=3, text=['Hard Rock']),
+#           'TXXX:FMPS_RATING': TXXX(encoding=3, desc='FMPS_RATING', text=['0.4']),
+#           'TIT2': TIT2(encoding=3, text=['Faster Than The Speed Of Light']),
+#           'TPE1': TPE1(encoding=3, text=["Yngwie J. Malmsteen's Rising Force"]),
+#           'TRCK': TRCK(encoding=3, text=['10/12']) }
+    #audio.add(TIT2(encoding=3, text=u"An example"))
+    audio2.add(TXXX(encoding=3, desc='FMPS_Rating', text=u'0.4'))
+    audio2.save()
+    logging.info(audio2)
+
+############################################################################
 def processDirFortagFoundButUnratedFile(inputParams, logging):
   foundNoRating = []
   foundWithRating = []
@@ -115,14 +158,16 @@ def processDirFortagFoundButUnratedFile(inputParams, logging):
       if fnmatch.fnmatch(srcCompleteFileName, '*.' + inputParams["fileFilter"]):
         #tgtCompleteFileName = findTGTFileName(srcCompleteFileName, inputParams["linkDirName"],inputParams["tgtDirName"])
         tagFoundButUnratedFile(srcCompleteFileName, inputParams["toolName"],inputParams["toolOptions"],foundNoRating,foundWithRating,foundWithUpperCaseRating)
-        #copyRatedMp3ToTgtDir(srcCompleteFileName,inputParams)
-  processFoundDicts(inputParams, logging,foundNoRating,foundWithRating,foundWithUpperCaseRating) 
+        #testMutagen(logging, srcCompleteFileName)
+
+  #processFoundDicts(inputParams, logging,foundNoRating,foundWithRating,foundWithUpperCaseRating) 
 
 
 ############################################################################
 def processDirForCopyRatedMP3s(inputParams, logging):
   foundNoRating = []
   foundWithRating = []
+  foundWithUpperCaseRating = []
   for Verz, VerzList, DateiListe in os.walk(inputParams["srcDirName"]):
     logging.debug(" VerzList = " + str(VerzList))
     logging.debug(" DateiListe = " + str(DateiListe))
@@ -131,7 +176,7 @@ def processDirForCopyRatedMP3s(inputParams, logging):
       logging.debug(" srcCompleteFileName  = " + srcCompleteFileName) 
       if fnmatch.fnmatch(srcCompleteFileName, '*.' + inputParams["fileFilter"]):
         copyRatedMp3ToTgtDir(srcCompleteFileName,inputParams,foundNoRating,foundWithRating)
-  processFoundDicts(inputParams, logging,foundNoRating,foundWithRating) 
+  processFoundDicts(inputParams, logging,foundNoRating,foundWithRating,foundWithUpperCaseRating) 
   
 ############################################################################
 def copyRatedMp3ToTgtDir(srcCompleteFileName,inputParams,foundNoRating,foundWithRating):
