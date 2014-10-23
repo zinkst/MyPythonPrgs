@@ -88,6 +88,10 @@ def tagFoundButUnratedFile(srcCompleteFileName, toolName, toolOptions,foundNoRat
  
 ############################################################################
 def processFoundDicts(inputParams, logging,foundNoRating,foundWithRating,foundWithUpperCaseRating):
+  
+  if not os.path.exists(inputParams['tgtDirName']):
+     logging.debug("Creating" + inputParams['tgtDirName'])
+     os.makedirs(inputParams['tgtDirName'], 0o775)
   WithRatingFileName=os.path.join(inputParams['tgtDirName'], 'foundWithRating.lst')
   logging.debug("WithRatingFileName = " + WithRatingFileName)
   with open(WithRatingFileName, 'w') as withRatingfile:
@@ -159,8 +163,7 @@ def processDirFortagFoundButUnratedFile(inputParams, logging):
         #tgtCompleteFileName = findTGTFileName(srcCompleteFileName, inputParams["linkDirName"],inputParams["tgtDirName"])
         tagFoundButUnratedFile(srcCompleteFileName, inputParams["toolName"],inputParams["toolOptions"],foundNoRating,foundWithRating,foundWithUpperCaseRating)
         #testMutagen(logging, srcCompleteFileName)
-
-  #processFoundDicts(inputParams, logging,foundNoRating,foundWithRating,foundWithUpperCaseRating) 
+  processFoundDicts(inputParams, logging,foundNoRating,foundWithRating,foundWithUpperCaseRating) 
 
 
 ############################################################################
@@ -252,7 +255,7 @@ logger = initLogger(inputParams)
 
 logging.debug(inputParams)
 
-#processDirFortagFoundButUnratedFile(inputParams, logging)
+processDirFortagFoundButUnratedFile(inputParams, logging)
 processDirForCopyRatedMP3s(inputParams, logging)
             
 print ("successfully transfered %s " % inputParams["srcDirName"])
