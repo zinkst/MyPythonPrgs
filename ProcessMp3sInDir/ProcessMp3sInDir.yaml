@@ -1,11 +1,18 @@
 #loglevel: DEBUG
 loglevel: INFO
-#linkDirName: /home/zinks/workspace/MyPythonPrgs/ProcessMp3sInDir/testdata/src/car_links
-#srcDirName: /home/zinks/workspace/MyPythonPrgs/ProcessMp3sInDir/testdata/src/Sammlung
-#tgtDirName: /home/zinks/workspace/MyPythonPrgs/ProcessMp3sInDir/testdata/BesteBewertung
-linkDirName: /links/Musik/car_links/
-srcDirName: /links/Musik/Sammlung
-tgtDirName: /links/Musik/BesteBewertung
+fileFilter: mp3 
+#linkDirName: /links/Stefan/myPrg/MyPythonPrgs/ProcessMp3sInDir/testdata/src/car_links
+linkDirName: /home/zinks/Stefan/myPrg/MyPythonPrgs/ProcessMp3sInDir/testdata/src/Sammlung/Alben/Clawfinger
+tgtDirName:  /links/Stefan/myPrg/MyPythonPrgs/ProcessMp3sInDir/testdata/tgt
+srcDirName: /links/Stefan/myPrg/MyPythonPrgs/ProcessMp3sInDir/testdata/src/Sammlung
+#linkDirName: /local/backup/Musik/car_links
+#tgtDirName:  /local/backup/Musik/BesteBewertung
+#srcDirName:  /local/backup/Musik/Sammlung
+#srcDirName: /local/backup/Musik/Sammlung/Alben/Coldplay
+ratingThreshold: 0.8
+# use lame to renencode 
+reencode: true
+lame_params: -V 8
+#
 toolName: cp
 toolOptions: -prv
-fileFilter: mp3 
