@@ -1,18 +1,26 @@
+# use production or development config
+#configuration: develop
+configuration: production
+
 #loglevel: DEBUG
 loglevel: INFO
 fileFilter: mp3 
-#linkDirName: /links/Stefan/myPrg/MyPythonPrgs/ProcessMp3sInDir/testdata/src/car_links
-linkDirName: /home/zinks/Stefan/myPrg/MyPythonPrgs/ProcessMp3sInDir/testdata/src/Sammlung/Alben/Clawfinger
-tgtDirName:  /links/Stefan/myPrg/MyPythonPrgs/ProcessMp3sInDir/testdata/tgt
-srcDirName: /links/Stefan/myPrg/MyPythonPrgs/ProcessMp3sInDir/testdata/src/Sammlung
-#linkDirName: /local/backup/Musik/car_links
-#tgtDirName:  /local/backup/Musik/BesteBewertung
-#srcDirName:  /local/backup/Musik/Sammlung
-#srcDirName: /local/backup/Musik/Sammlung/Alben/Coldplay
-ratingThreshold: 0.8
-# use lame to renencode 
-reencode: true
-lame_params: -V 8
-#
-toolName: cp
-toolOptions: -prv
+develop:
+  #linkDirName: /links/Stefan/myPrg/MyPythonPrgs/ProcessMp3sInDir/testdata/src/car_links
+  linkDirName: /links/Stefan/myPrg/MyPythonPrgs/ProcessMp3sInDir/testdata/src/Sammlung
+  tgtDirName:  /links/Stefan/myPrg/MyPythonPrgs/ProcessMp3sInDir/testdata/tgt
+  srcDirName: /links/Stefan/myPrg/MyPythonPrgs/ProcessMp3sInDir/testdata/src/Sammlung
+  ratingThreshold: 0.4
+  # use lame to renencode 
+  reencode: false
+  lame_params: -V 8
+production:
+  #linkDirName: /local/backup/Musik/car_links
+  linkDirName:  /local/backup/Musik/Sammlung/Singles  
+  tgtDirName:  /local/backup/Musik/BesteBewertung
+  srcDirName:  /local/backup/Musik/Sammlung
+  #srcDirName: /local/backup/Musik/Sammlung/Alben/Coldplay
+  ratingThreshold: 0.4
+  # use lame to renencode 
+  reencode: false
+  lame_params: -V 8

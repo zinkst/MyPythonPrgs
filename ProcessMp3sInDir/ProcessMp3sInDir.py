@@ -19,9 +19,10 @@ import logging.config
 import json
 import yaml
 import taglib # https://pypi.python.org/pypi/pytaglib
-from mutagen.mp3 import MP3 # https://code.google.com/p/mutagen/wiki/Tutorial
-from mutagen.id3 import ID3, TIT2, TALB, TPE1, TPE2, COMM, USLT, TCOM, TCON, TDRC,TXXX, POPM
+from mutagen.id3 import ID3, TIT2, TALB, TPE1, TPE2, COMM, USLT, TCOM, TCON, TDRC,TXXX, POPM, TCMP, ID3NoHeaderError
 from mutagen.easyid3 import EasyID3
+from mutagen.mp3 import MP3, HeaderNotFoundError
+
 import math
 import subprocess
 #from xml import dom
@@ -32,14 +33,14 @@ import subprocess
 
      
 ############################################################################
-def initLogger(inputParams):
+def initLogger(config):
     handler = logging.StreamHandler(sys.stdout)
     frm = logging.Formatter("%(asctime)s [%(levelname)-5s]: %(message)s", "%Y%m%d %H:%M:%S")
     handler.setFormatter(frm)
     logger = logging.getLogger()
     logger.addHandler(handler)
-    print('inputParams["loglevel"] = ' + inputParams["loglevel"])
-    if inputParams["loglevel"] == "DEBUG":
+    print('config["loglevel"] = ' + config["loglevel"])
+    if config["loglevel"] == "DEBUG":
         logger.setLevel(logging.DEBUG)
     else:
         logger.setLevel(logging.INFO)
@@ -89,9 +90,19 @@ def tagFoundButUnratedFile(srcCompleteFileName, toolName, toolOptions,foundNoRat
     mutID3.save()
 
 ############################################################################
+def setCompilationTag(srcCompleteFileName, foundNoRating,foundWithRating):
+    """
+    set the compilation tag TCMP to file
+    """
+    mutID3 = ID3(srcCompleteFileName)
+    logging.info("setting compilation tag for " + os.path.basename(srcCompleteFileName))
+    mutID3.add(TCMP(encoding=3, text='1'))
+    mutID3.save()
+    
+############################################################################
 def resyncMP3Ratings(srcCompleteFileName, foundNoRating,foundWithRating):
     """
-    This method resynncs FMPS_RATING to all files given. 
+    This method resyncs FMPS_RATING to all files given. 
     It resyncs POPM (e.g Windows Media Player) and RATING (e.g. xbmc) tags to files 
     if no FMPS_RATING is found nothing is done.    
     """
@@ -102,6 +113,7 @@ def resyncMP3Ratings(srcCompleteFileName, foundNoRating,foundWithRating):
       try:
         curRating = float(f.tags['FMPS_RATING'][0])
         logging.info("FMPS_RATING found: " + os.path.basename(srcCompleteFileName) + "tags" + str(f.tags))
+        #logging.info(os.path.basename(srcCompleteFileName) + " mutID3tags: " + str(mutID3))
         new_entry={'srcCompleteFileName' : srcCompleteFileName , 'TAGS' : f.tags }
         foundWithRating.append(new_entry)
         # pytaglib can only write  tags in uppercase so these 2 lines below do not work
@@ -111,6 +123,7 @@ def resyncMP3Ratings(srcCompleteFileName, foundNoRating,foundWithRating):
         try:
           curPOPMRating=mutID3.getall('POPM')[0].rating
           if curPOPMRating != newPopmRating:
+            mutID3.delall('POPM')
             mutID3.add(POPM(rating=newPopmRating))
             changedTag=True
           else:
@@ -130,7 +143,7 @@ def resyncMP3Ratings(srcCompleteFileName, foundNoRating,foundWithRating):
             changedTag=True
           else:
             logging.debug("RATING found and already synced: " + os.path.basename(srcCompleteFileName))  
-        except KeyError:
+        except (KeyError, IndexError) as e :
           logging.debug('RATING rating did not exist:  adding ... it') 
           mutID3.add(TXXX(encoding=3, desc='RATING', text=str(newRATING)))
           changedTag=True
@@ -217,9 +230,10 @@ def processDirForUpdateTagsForFile(inputParams, logging):
     for Datei in sorted(DateiListe):
       srcCompleteFileName = os.path.join(Verz, Datei)
       logging.debug(" srcCompleteFileName  = " + srcCompleteFileName) 
-      if fnmatch.fnmatch(srcCompleteFileName, '*.' + inputParams["fileFilter"]):
+      if fnmatch.fnmatch(srcCompleteFileName, '*.' + config["fileFilter"]):
         #tagFoundButUnratedFile(srcCompleteFileName, inputParams["toolName"],inputParams["toolOptions"],foundNoRating,foundWithRating,foundWithUpperCaseRating)
-        resyncMP3Ratings(srcCompleteFileName, foundNoRating, foundWithRating)
+        #resyncMP3Ratings(srcCompleteFileName, foundNoRating, foundWithRating)
+        setCompilationTag(srcCompleteFileName, foundNoRating, foundWithRating)
         #testMutagen(logging, srcCompleteFileName)
   processFoundDicts(inputParams, logging,foundNoRating,foundWithRating,foundWithUpperCaseRating) 
 
@@ -235,7 +249,7 @@ def processDirForCopyRatedMP3s(inputParams, logging):
     for Datei in sorted(DateiListe):
       srcCompleteFileName = os.path.join(Verz, Datei)
       logging.debug(" srcCompleteFileName  = " + srcCompleteFileName) 
-      if fnmatch.fnmatch(srcCompleteFileName, '*.' + inputParams["fileFilter"]):
+      if fnmatch.fnmatch(srcCompleteFileName, '*.' + config["fileFilter"]):
         copyRatedMp3ToTgtDir(srcCompleteFileName,inputParams,foundNoRating,foundWithRating)
   processFoundDicts(inputParams, logging,foundNoRating,foundWithRating,foundWithUpperCaseRating) 
   
@@ -274,6 +288,8 @@ def copyRatedMp3ToTgtDir(srcCompleteFileName,inputParams,foundNoRating,foundWith
     os.chdir(os.path.dirname(srcCompleteFileName))
     f = taglib.File(srcCompleteFileName)
     logging.debug(f.tags)
+    ezid3 = EasyID3(srcCompleteFileName)
+    # EasyID3: {'artist': ['John Parr'], 'compilation': ['1'], 'date': ['1985'], 'title': ['St. Elmo´s Fire'], 'album': ['Prinz - greatest Film hits'], 'genre': ['Pop'], 'tracknumber': ['03/15']}
     curRating = None
     if 'FMPS_RATING' in f.tags:
         try:
@@ -283,23 +299,28 @@ def copyRatedMp3ToTgtDir(srcCompleteFileName,inputParams,foundNoRating,foundWith
         if curRating >= inputParams['ratingThreshold']:
           new_entry = {'srcCompleteFileName' : srcCompleteFileName , 'TAGS' : f.tags }
           foundWithRating.append(new_entry)
-          tgtFullDirName = findTgtDirName(inputParams, f, logging)
           discnumber = None  
           tracknumber = None
           album = None  
-          if 'TRACKNUMBER' in f.tags: tracknumber = f.tags['TRACKNUMBER'][0].split('/')[0]
+          if 'TRACKNUMBER' in f.tags: tracknumber = f.tags['TRACKNUMBER'][0].split('/')[0].zfill(2)
           if 'DISCNUMBER' in f.tags: discnumber = f.tags['DISCNUMBER'][0].split('/')[0]
           if 'ALBUM' in f.tags: album = f.tags['ALBUM'][0]
-          if discnumber and tracknumber and album:
-               tgtFileName = album + sep + 'D' + discnumber + sep + f.tags['ALBUM'][0] + sep + tracknumber + sep + f.tags['TITLE'][0] + '.' + inputParams["fileFilter"]
-          elif tracknumber and album:         
-              tgtFileName = album + sep + tracknumber + sep + f.tags['TITLE'][0] + '.' + inputParams["fileFilter"]
-          elif tracknumber:         
-              tgtFileName = tracknumber + sep + f.tags['TITLE'][0] + '.' + inputParams["fileFilter"]
-          elif album: 
-              tgtFileName = album + sep + f.tags['TITLE'][0] + '.' + inputParams["fileFilter"]
+          tgtFullDirName = findTgtDirName(inputParams, f, logging)
+          tgtFileName=""
+          if 'compilation' in ezid3.keys() and ezid3['compilation'][0] == '1':
+            logging.debug( os.path.basename(srcCompleteFileName) + " is part of compilation" )
+            tgtFileName=ezid3['artist'][0]+sep+ezid3['title'][0] + '.' + config["fileFilter"]    
           else:
-              tgtFileName = f.tags['TITLE'][0] + '.' + inputParams["fileFilter"]
+            if discnumber and tracknumber and album:
+              tgtFileName = album[0:3] + sep + 'D' + discnumber +  sep + tracknumber + sep + f.tags['TITLE'][0] + '.' + config["fileFilter"]
+            elif tracknumber and album:         
+              tgtFileName = album[0:3] + sep + tracknumber + sep + f.tags['TITLE'][0] + '.' + config["fileFilter"]
+            elif tracknumber:         
+              tgtFileName = tracknumber + sep + f.tags['TITLE'][0] + '.' + config["fileFilter"]
+            elif album: 
+                tgtFileName = album + sep + f.tags['TITLE'][0] + '.' + config["fileFilter"]
+            else:
+                tgtFileName = f.tags['TITLE'][0] + '.' + config["fileFilter"]
           tgtFileName = tgtFileName.replace('/', '_') 
           tgtFileName = tgtFileName.replace(':', '_') 
           tgtFileName = tgtFileName.replace('>', '_') 
@@ -339,13 +360,15 @@ else:
 # Python3 
 with open(configFileName, 'r',encoding='utf-8') as cfgfile:
     #config = json.load(cfgfile)
-    inputParams = yaml.load(cfgfile)
-logger = initLogger(inputParams)
+    config = yaml.load(cfgfile)
+logger = initLogger(config)
 
+configuration = config["configuration"]  
+inputParams = config[configuration]
 logging.debug(inputParams)
 
-processDirForUpdateTagsForFile(inputParams, logging)
-#processDirForCopyRatedMP3s(inputParams, logging)
+#processDirForUpdateTagsForFile(inputParams, logging)
+processDirForCopyRatedMP3s(inputParams, logging)
             
 print ("successfully transfered %s " % inputParams["srcDirName"])
 
