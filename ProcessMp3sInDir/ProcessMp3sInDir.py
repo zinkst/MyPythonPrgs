@@ -232,8 +232,8 @@ def processDirForUpdateTagsForFile(inputParams, logging):
       logging.debug(" srcCompleteFileName  = " + srcCompleteFileName) 
       if fnmatch.fnmatch(srcCompleteFileName, '*.' + config["fileFilter"]):
         #tagFoundButUnratedFile(srcCompleteFileName, inputParams["toolName"],inputParams["toolOptions"],foundNoRating,foundWithRating,foundWithUpperCaseRating)
-        #resyncMP3Ratings(srcCompleteFileName, foundNoRating, foundWithRating)
-        setCompilationTag(srcCompleteFileName, foundNoRating, foundWithRating)
+        resyncMP3Ratings(srcCompleteFileName, foundNoRating, foundWithRating)
+        #setCompilationTag(srcCompleteFileName, foundNoRating, foundWithRating)
         #testMutagen(logging, srcCompleteFileName)
   processFoundDicts(inputParams, logging,foundNoRating,foundWithRating,foundWithUpperCaseRating) 
 
@@ -268,7 +268,7 @@ def findTgtDirName(inputParams, f, logging):
         elif letterCode in range(81,86):
           letterSubdir = "Q..U";
         elif letterCode in range(86,91):
-          letterSubdir = "R..Z";
+          letterSubdir = "V..Z";
         else:
            letterSubdir = "Anderer";
         tgtFullDirName = os.path.join(inputParams["tgtDirName"], letterSubdir,f.tags['ARTIST'][0])

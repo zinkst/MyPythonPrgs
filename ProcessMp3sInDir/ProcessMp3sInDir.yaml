@@ -16,9 +16,9 @@ develop:
   lame_params: -V 8
 production:
   #linkDirName: /local/backup/Musik/car_links
-  linkDirName:  /local/backup/Musik/Sammlung/Singles  
-  tgtDirName:  /local/backup/Musik/BesteBewertung
-  srcDirName:  /local/backup/Musik/Sammlung
+  linkDirName:  /links/Musik/Sammlung  
+  tgtDirName:  /links/Musik/BesteBewertung
+  srcDirName:  /links/Musik/Sammlung
   #srcDirName: /local/backup/Musik/Sammlung/Alben/Coldplay
   ratingThreshold: 0.4
   # use lame to renencode 
