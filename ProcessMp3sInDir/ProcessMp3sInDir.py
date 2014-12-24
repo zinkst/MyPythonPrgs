@@ -260,7 +260,7 @@ def findTgtDirName(inputParams, f, logging):
         logging.debug("startLetter = " + startLetter)
         letterCode=ord(startLetter.upper())
         if letterCode in range(65,71):
-          letterSubdir = "A..F";
+          letterSubdir = "A..E";
         elif letterCode in range(71,76):
           letterSubdir = "G..K";
         elif letterCode in range(76,81):
