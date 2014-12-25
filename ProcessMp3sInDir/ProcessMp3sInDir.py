@@ -168,7 +168,7 @@ def processFoundDicts(inputParams, logging,foundNoRating,foundWithRating,foundWi
   with open(WithRatingFileName, 'w') as withRatingfile:
      for entry in foundWithRating:
        #output=(str(entry['FMPS_RATING']) + '|' + str(entry['ARTIST']) + '|' + str(entry['TITLE']) + '|' + str(entry['srcCompleteFileName']) )
-       output=(entry)
+       output=(entry['srcCompleteFileName'])
        logging.info(output)
        withRatingfile.write(str(output) + '\n') 
   NoRatingFileName=os.path.join(inputParams['tgtDirName'], 'NoRating.lst')
@@ -239,7 +239,7 @@ def processDirForUpdateTagsForFile(inputParams, logging):
 
 
 ############################################################################
-def processDirForCopyRatedMP3s(inputParams, logging):
+def processDirForMP3s(inputParams, logging):
   foundNoRating = []
   foundWithRating = []
   foundWithUpperCaseRating = []
@@ -250,8 +250,9 @@ def processDirForCopyRatedMP3s(inputParams, logging):
       srcCompleteFileName = os.path.join(Verz, Datei)
       logging.debug(" srcCompleteFileName  = " + srcCompleteFileName) 
       if fnmatch.fnmatch(srcCompleteFileName, '*.' + config["fileFilter"]):
-        copyRatedMp3ToTgtDir(srcCompleteFileName,inputParams,foundNoRating,foundWithRating)
+        workOnRatedMP3(srcCompleteFileName,inputParams,foundNoRating,foundWithRating)
   processFoundDicts(inputParams, logging,foundNoRating,foundWithRating,foundWithUpperCaseRating) 
+  writeM3UPlaylistForMatchingMP3s(inputParams, logging, foundWithRating)
   
 ############################################################################
 def findTgtDirName(inputParams, f, logging):
@@ -280,9 +281,55 @@ def findTgtDirName(inputParams, f, logging):
     return tgtFullDirName
 
 ############################################################################
-def copyRatedMp3ToTgtDir(srcCompleteFileName,inputParams,foundNoRating,foundWithRating):
+def copyMP3ToTgtDir(srcCompleteFileName, inputParams, foundWithRating, f, ezid3):
+  sep='_'
+  new_entry = {'srcCompleteFileName':srcCompleteFileName, 'TAGS':f.tags, 'EZID3':ezid3}
+  foundWithRating.append(new_entry)
+  discnumber = None
+  tracknumber = None
+  album = None
+  if 'TRACKNUMBER' in f.tags:
+    tracknumber = f.tags['TRACKNUMBER'][0].split('/')[0].zfill(2)
+  if 'DISCNUMBER' in f.tags:
+    discnumber = f.tags['DISCNUMBER'][0].split('/')[0]
+  if 'ALBUM' in f.tags:
+    album = f.tags['ALBUM'][0]
+  tgtFullDirName = findTgtDirName(inputParams, f, logging)
+  tgtFileName = ""
+  if 'compilation' in ezid3.keys() and ezid3['compilation'][0] == '1':
+    logging.debug(os.path.basename(srcCompleteFileName) + " is part of compilation")
+    tgtFileName = ezid3['artist'][0] + sep + ezid3['title'][0] + '.' + config["fileFilter"]
+  elif discnumber and tracknumber and album:
+    tgtFileName = album[0:3] + sep + 'D' + discnumber + sep + tracknumber + sep + f.tags['TITLE'][0] + '.' + config["fileFilter"]
+  elif tracknumber and album:
+    tgtFileName = album[0:3] + sep + tracknumber + sep + f.tags['TITLE'][0] + '.' + config["fileFilter"]
+  elif tracknumber:
+    tgtFileName = tracknumber + sep + f.tags['TITLE'][0] + '.' + config["fileFilter"]
+  elif album:
+    tgtFileName = album + sep + f.tags['TITLE'][0] + '.' + config["fileFilter"]
+  else:
+    tgtFileName = f.tags['TITLE'][0] + '.' + config["fileFilter"]
+  tgtFileName = tgtFileName.replace('/', '_')
+  tgtFileName = tgtFileName.replace(':', '_')
+  tgtFileName = tgtFileName.replace('>', '_')
+  tgtFileName = tgtFileName.replace('<', '_')
+  tgtFileName = tgtFileName.replace('?', '_')
+# tgtFileName=tgtFileName.replace('!','_')
+  tgtCompleteFilename = os.path.join(tgtFullDirName, tgtFileName)
+  logging.info(srcCompleteFileName + " => " + tgtCompleteFilename)
+  if not os.path.exists(tgtCompleteFilename):
+    if inputParams['reencode']:
+      subprocess.call(['lame', inputParams['lame_params'], srcCompleteFileName, tgtCompleteFilename])
+    else:
+      shutil.copy(srcCompleteFileName, tgtCompleteFilename)
+  else:
+    logging.debug("already existing " + tgtCompleteFilename)
+  
+
+############################################################################
+
+def workOnRatedMP3(srcCompleteFileName,inputParams,foundNoRating,foundWithRating):
     # {'TITLE': ['Foot of the mountain'], 'FMPS_RATING': ['0.8'], 'TRACKNUMBER': ['04/10'], 'COMMENT': ['Created with EAC/REACT v2.0.akku.b03, 2010-01-13'], 'FMPS_RATING_AMAROK_SCORE': ['0.0975'], 'REPLAYGAIN_TRACK_PEAK': ['0.557932'], 'ALBUM': ['Foot of the mountain'], 'ENCODING': ['LAME 3.97 -V2 --vbr-new --noreplaygain --nohist'], 'MP3GAIN_ALBUM_MINMAX': ['136,251'], 'ARTIST': ['A-HA'], 'REPLAYGAIN_ALBUM_GAIN': ['-3.470000'], 'MP3GAIN_UNDO': ['+004,+004,N'], 'MP3GAIN_MINMAX': ['138,251'], 'REPLAYGAIN_ALBUM_PEAK': ['0.606102'], 'COMMENT:ID3V1 COMMENT': ['Created with EAC/REACT v2.0.'], 'REPLAYGAIN_TRACK_GAIN': ['-4.040000 dB'], 'GENRE': ['Pop'], 'DATE': ['2009'], 'ENCODEDBY': ['SZ']}
-    sep='_'
     #logging.debug(" srcCompleteFileName = " + srcCompleteFileName)
     #logging.debug(" tgtDirName = " + inputParams["tgtDirName"])
     os.chdir(os.path.dirname(srcCompleteFileName))
@@ -297,45 +344,7 @@ def copyRatedMp3ToTgtDir(srcCompleteFileName,inputParams,foundNoRating,foundWith
         except ValueError:
           logging.error(f.tags['FMPS_RATING'][0] + " not a float")
         if curRating >= inputParams['ratingThreshold']:
-          new_entry = {'srcCompleteFileName' : srcCompleteFileName , 'TAGS' : f.tags }
-          foundWithRating.append(new_entry)
-          discnumber = None  
-          tracknumber = None
-          album = None  
-          if 'TRACKNUMBER' in f.tags: tracknumber = f.tags['TRACKNUMBER'][0].split('/')[0].zfill(2)
-          if 'DISCNUMBER' in f.tags: discnumber = f.tags['DISCNUMBER'][0].split('/')[0]
-          if 'ALBUM' in f.tags: album = f.tags['ALBUM'][0]
-          tgtFullDirName = findTgtDirName(inputParams, f, logging)
-          tgtFileName=""
-          if 'compilation' in ezid3.keys() and ezid3['compilation'][0] == '1':
-            logging.debug( os.path.basename(srcCompleteFileName) + " is part of compilation" )
-            tgtFileName=ezid3['artist'][0]+sep+ezid3['title'][0] + '.' + config["fileFilter"]    
-          else:
-            if discnumber and tracknumber and album:
-              tgtFileName = album[0:3] + sep + 'D' + discnumber +  sep + tracknumber + sep + f.tags['TITLE'][0] + '.' + config["fileFilter"]
-            elif tracknumber and album:         
-              tgtFileName = album[0:3] + sep + tracknumber + sep + f.tags['TITLE'][0] + '.' + config["fileFilter"]
-            elif tracknumber:         
-              tgtFileName = tracknumber + sep + f.tags['TITLE'][0] + '.' + config["fileFilter"]
-            elif album: 
-                tgtFileName = album + sep + f.tags['TITLE'][0] + '.' + config["fileFilter"]
-            else:
-                tgtFileName = f.tags['TITLE'][0] + '.' + config["fileFilter"]
-          tgtFileName = tgtFileName.replace('/', '_') 
-          tgtFileName = tgtFileName.replace(':', '_') 
-          tgtFileName = tgtFileName.replace('>', '_') 
-          tgtFileName = tgtFileName.replace('<', '_') 
-          tgtFileName = tgtFileName.replace('?', '_') 
-          # tgtFileName=tgtFileName.replace('!','_') 
-          tgtCompleteFilename = os.path.join(tgtFullDirName, tgtFileName)
-          logging.info(srcCompleteFileName + " => " + tgtCompleteFilename)
-          if not os.path.exists(tgtCompleteFilename):
-              if inputParams['reencode']:
-                subprocess.call(['lame',inputParams['lame_params'],srcCompleteFileName, tgtCompleteFilename])
-              else:
-                shutil.copy(srcCompleteFileName, tgtCompleteFilename)
-          else:
-              logging.debug("already existing " + tgtCompleteFilename)     
+          copyMP3ToTgtDir(srcCompleteFileName, inputParams, foundWithRating, f, ezid3)
         else:
           logging.debug("tagged file with rating " + f.tags['FMPS_RATING'][0] + " under threshold: " + srcCompleteFileName)
     else:
@@ -343,6 +352,37 @@ def copyRatedMp3ToTgtDir(srcCompleteFileName,inputParams,foundNoRating,foundWith
         foundNoRating.append(new_entry)
         logging.debug("untagged file " + srcCompleteFileName)
 
+############################################################################
+"""
+#EXTM3U
+#EXTINF:238,Helene Fischer - Von hier bis unendlich
+/shares/Filer/Musik/Sammlung/Alben/Helene Fischer/Best of Live/01_Von hier bis unendlich.mp3
+#EXTINF:162,Helene Fischer - Du hast mein Herz berührt
+/shares/Filer/Musik/Sammlung/Alben/Helene Fischer/Best of Live/02_Du hast mein Herz berührt.mp3
+"""
+def writeM3UPlaylistForMatchingMP3s(inputParams, logging,foundWithRating):
+  if not os.path.exists(inputParams['m3uDirName']):
+     logging.debug("Creating" + inputParams['m3uDirName'])
+     os.makedirs(inputParams['m3uDirName'], 0o775)
+  M3UFileName=os.path.join(inputParams['m3uDirName'], 'Rating_gr_'+str(inputParams['ratingThreshold'])+'.m3u')
+  logging.debug("M3UFileName = " + M3UFileName)
+   
+  with open(M3UFileName, 'w') as M3Ufile:
+     M3Ufile.write('#EXTM3U' + '\n') 
+     for entry in foundWithRating:
+       #new_entry = {'srcCompleteFileName':srcCompleteFileName, 'TAGS':f.tags, 'EZID3':ezid3}
+       audio = MP3(entry['srcCompleteFileName'])
+       duration=str(int(audio.info.length))
+       output=('#EXTINF:'+duration + ',' + str(entry['EZID3']['artist'][0]) + ' - ' + str(entry['EZID3']['title'][0]) )
+       logging.info(output)
+       M3Ufile.write(str(output) + '\n') 
+       output= str(entry['srcCompleteFileName'])
+       logging.info(output)
+       M3Ufile.write(str(output) + '\n') 
+       
+       output=(entry)
+       
+  
 ############################################################################
 # main starts here
 # global variables
@@ -368,7 +408,7 @@ inputParams = config[configuration]
 logging.debug(inputParams)
 
 #processDirForUpdateTagsForFile(inputParams, logging)
-processDirForCopyRatedMP3s(inputParams, logging)
+processDirForMP3s(inputParams, logging)
             
 print ("successfully transfered %s " % inputParams["srcDirName"])
 
