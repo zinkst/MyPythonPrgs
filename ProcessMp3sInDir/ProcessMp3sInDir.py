@@ -260,16 +260,22 @@ def findTgtDirName(inputParams, f, logging):
         startLetter=f.tags['ARTIST'][0][0]
         logging.debug("startLetter = " + startLetter)
         letterCode=ord(startLetter.upper())
-        if letterCode in range(65,71):
-          letterSubdir = "A..E";
-        elif letterCode in range(71,76):
-          letterSubdir = "G..K";
-        elif letterCode in range(76,81):
-          letterSubdir = "L..P";
-        elif letterCode in range(81,86):
-          letterSubdir = "Q..U";
+        if letterCode in range(65,68):
+          letterSubdir = "ABC";
+        elif letterCode in range(68,71):
+          letterSubdir = "DEF";
+        elif letterCode in range(71,74):
+          letterSubdir = "GHI";
+        elif letterCode in range(74,77):
+          letterSubdir = "JKL";
+        elif letterCode in range(77,80):
+          letterSubdir = "MNO";
+        elif letterCode in range(80,83):
+          letterSubdir = "PQR";
+        elif letterCode in range(83,86):
+          letterSubdir = "STU";
         elif letterCode in range(86,91):
-          letterSubdir = "V..Z";
+          letterSubdir = "VWXYZ";
         else:
            letterSubdir = "Anderer";
         tgtFullDirName = os.path.join(inputParams["tgtDirName"], letterSubdir,f.tags['ARTIST'][0])
