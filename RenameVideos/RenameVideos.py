@@ -46,7 +46,27 @@ def initLogger(config):
         logger.setLevel(logging.INFO)
     return logger
 
+############################################################################
+def renameVideoFiles(videos,config):
 
+  if not os.path.exists(config['tgtDir']):
+    os.mkdir(config['tgtDir'], mode=0o775)
+  year='2014'
+  sep='_'  
+  videos_2014=videos[year]
+  for curVideo in videos_2014:
+    logging.debug(curVideo)
+    """ Number: "00126"
+    Title: Sternsinger Georg und Henry
+    Extension: MTS """
+      
+    srcCompleteFileName=os.path.join(config['srcDir'],year,curVideo['Number']+'.'+curVideo['Extension'])
+    tgtCompleteFileName=os.path.join(config['tgtDir'],year,curVideo['Number']+sep+curVideo['Title']+'.'+curVideo['Extension'])
+    logging.debug("src="+srcCompleteFileName)
+    logging.debug("tgt="+tgtCompleteFileName)
+    #shutil.move(srcCompleteFileName, tgtCompleteFilename)
+    #subprocess.call(['ffmpeg', '-i', srcCompleteFileName])
+    
 ############################################################################
 # main starts here
 # global variables
@@ -71,8 +91,7 @@ logging.info(config)
 videos = config["videos"]  
 logging.info(videos)
 
-#processDirForUpdateTagsForFile(inputParams, logging)
-#processDirForMP3s(inputParams, logging)
+renameVideoFiles(videos,config)
             
 #print ("successfully transfered %s " % inputParams["srcDirName"])
 

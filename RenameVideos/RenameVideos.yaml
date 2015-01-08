@@ -1,15 +1,99 @@
 # use production or development config
 
-#loglevel: DEBUG
-loglevel: INFO
-srcDir: "/links/FamilienVideos/originale/2014"
-tgtDir: "/links/FamilienVideos/originale/2014"
+loglevel: DEBUG
+#loglevel: INFO
+srcDir: "/links/FamilienVideos/originale"
+tgtDir: "/links/FamilienVideos/originale"
 videos:
-  2014:
+  '2014':
   - Number: "00126"
     Title: Sternsinger Georg und Henry
     Extension: MTS
   - Number: "00127"
     Title: Fußballturnier Wildberg
+    Extension: MTS
+  - Number: "00128"
+    Title: Fernseh kucken
+    Extension: MTS
+  - Number: "00129"
+    Title: Dreckmonster Fußball
+    Extension: MTS
+  - Number: "00130"
+    Title: Fußball in der Arena bei der Scheuer
+    Extension: MTS
+  - Number: "00131"
+    Title: Tierpark Tripsdrill
+    Extension: MTS
+  - Number: "00132"
+    Title: Tierpark Tripsdrill
+    Extension: MTS
+  - Number: "00133"
+    Title: Tierpark Tripsdrill
+    Extension: MTS
+  - Number: "00134"
+    Title: Schattenspiel in der Schule
+    Extension: MTS
+  - Number: "00136"
+    Title: Valentin hüpft von der Gartenmauer
+    Extension: MTS
+  - Number: "00137"
+    Title: Probe Orchesterkonzert in der Musikschule
+    Extension: MTS
+  - Number: "00138"
+    Title: Orchesterkonzert in der Musikschule
+    Extension: MTS
+  - Number: "00139"
+    Title: Henry Schwimmunterricht
+    Extension: MTS
+  - Number: "00140"
+    Title: Henry Schwimmunterricht
+    Extension: MTS
+  - Number: "00141"
+    Title: Henry Schwimmunterricht
+    Extension: MTS
+  - Number: "00142"
+    Title: Henry Schwimmunterricht
+    Extension: MTS
+  - Number: "00143"
+    Title: Erlebnispark Tripsdrill
+    Extension: MTS
+  - Number: "00144"
+    Title: Erlebnispark Tripsdrill
+    Extension: MTS
+  - Number: "00145"
+    Title: Erlebnispark Tripsdrill
+    Extension: MTS
+  - Number: "00146"
+    Title: Henry fährt 24er Rad
+    Extension: MTS
+  - Number: "00147"
+    Title: Valentin fährt 20er Rad
+    Extension: MTS
+  - Number: "00148"
+    Title: Ostern am Bach
+    Extension: MTS
+  - Number: "00152"
+    Title: Baustelle Fußballplatz Tag 1
+    Extension: MTS
+  - Number: "00153"
+    Title: Baustelle Fußballplatz Tag 2
+    Extension: MTS
+  - Number: "00154"
+    Title: Fußballplatz einsäen
+    Extension: MTS
+  - Number: "00179"
+    Title: Neunter Kindergeburtstag Georg
+    Extension: MTS
+  - Number: "00180"
+    Title: Valentin Aufführung im Kindi
+    Extension: MTS
+  - Number: "00181"
+    Title: Tanzproben auf dem Sportplatz
+    Extension: MTS
+  - Number: "00182"
+    Title: Henry Sketch in der Schule
+    Extension: MTS
+  - Number: "00183"
+    Title: Abschiedslied für frau Utzt
     Extension: MTS
   
