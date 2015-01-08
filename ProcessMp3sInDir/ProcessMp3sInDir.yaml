@@ -1,6 +1,6 @@
 # use production or development config
-#configuration: develop
-configuration: production
+configuration: develop
+#configuration: production
 
 #loglevel: DEBUG
 loglevel: INFO
