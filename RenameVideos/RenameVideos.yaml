@@ -1,0 +1,15 @@
+# use production or development config
+
+#loglevel: DEBUG
+loglevel: INFO
+srcDir: "/links/FamilienVideos/originale/2014"
+tgtDir: "/links/FamilienVideos/originale/2014"
+videos:
+  2014:
+  - Number: "00126"
+    Title: Sternsinger Georg und Henry
+    Extension: MTS
+  - Number: "00127"
+    Title: Fußballturnier Wildberg
+    Extension: MTS
+  
