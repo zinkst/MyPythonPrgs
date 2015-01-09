@@ -51,20 +51,35 @@ def renameVideoFiles(videos,config):
 
   if not os.path.exists(config['tgtDir']):
     os.mkdir(config['tgtDir'], mode=0o775)
-  year='2014'
   sep='_'  
-  videos_2014=videos[year]
-  for curVideo in videos_2014:
+  
+  subdirs = []
+  #tbd this iteration only works on 2 level depth
+  for k,v in videos.items():
+    subdirs.append(k) 
+    if isinstance(v,dict):
+      videos=next(iter (v.values()))
+      subdirs.extend(iter (v.keys()))  
+    else:
+      videos=v
+  
+  srcBasePath=config['srcDir']
+  tgtBasePath=config['tgtDir']
+  for subdir in subdirs:
+    srcBasePath=os.path.join(srcBasePath,subdir)
+    tgtBasePath=os.path.join(tgtBasePath,subdir)
+  
+  for curVideo in videos:
     logging.debug(curVideo)
     """ Number: "00126"
     Title: Sternsinger Georg und Henry
     Extension: MTS """
       
-    srcCompleteFileName=os.path.join(config['srcDir'],year,curVideo['Number']+'.'+curVideo['Extension'])
-    tgtCompleteFileName=os.path.join(config['tgtDir'],year,curVideo['Number']+sep+curVideo['Title']+'.'+curVideo['Extension'])
+    srcCompleteFileName=os.path.join(srcBasePath,curVideo['Number']+'.'+curVideo['Extension'])
+    tgtCompleteFileName=os.path.join(tgtBasePath,curVideo['Number']+sep+curVideo['Title']+'.'+curVideo['Extension'])
     logging.debug("src="+srcCompleteFileName)
     logging.debug("tgt="+tgtCompleteFileName)
-    #shutil.move(srcCompleteFileName, tgtCompleteFilename)
+    #shutil.move(srcCompleteFileName, tgtCompleteFileName)
     #subprocess.call(['ffmpeg', '-i', srcCompleteFileName])
     
 ############################################################################

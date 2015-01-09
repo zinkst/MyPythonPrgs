@@ -1,0 +1,81 @@
+# use production or development config
+
+loglevel: DEBUG
+#loglevel: INFO
+#srcDir: "/links/FamilienVideos/originale"
+#tgtDir: "/links/FamilienVideos/originale"
+srcDir: "/remote/WDMyCloud1/cifs/FamilienVideos/originale"
+tgtDir: "/remote/WDMyCloud1/cifs/FamilienVideos/originale"
+videos:
+  '2014':
+    201406_Pfingsten:
+    - Number: "00156"
+      Title: Affenberg
+      Extension: MTS
+    - Number: "00157"
+      Title: Affenberg
+      Extension: MTS
+    - Number: "00158"
+      Title: Affenberg
+      Extension: MTS
+    - Number: "00159"
+      Title: In den Ossiacher See springen
+      Extension: MTS
+    - Number: "00160"
+      Title: Schneefeld abfahren
+      Extension: MTS
+    - Number: "00161"
+      Title: Fahrt mit Sessellift Dreiländereck
+      Extension: MTS
+    - Number: "00162"
+      Title: Zugfahrt am Reisseck
+      Extension: MTS
+    - Number: "00163"
+      Title: Mit der Reisseckbahn steil nach unten 
+      Extension: MTS
+    - Number: "00164"
+      Title: Mit der Reisseckbahn steil nach unten 
+      Extension: MTS
+    - Number: "00165"
+      Title: Mit der Reisseckbahn steil nach unten 
+      Extension: MTS
+    - Number: "00166"
+      Title: Mit der Reisseckbahn steil nach unten 
+      Extension: MTS
+    - Number: "00167"
+      Title: Mit der Reisseckbahn steil nach unten 
+      Extension: MTS
+    - Number: "00168"
+      Title: Spielplatz in Ossiach 
+      Extension: MTS
+    - Number: "00169"
+      Title: Klettern am Spielplatz Pyramidenkogel 
+      Extension: MTS
+    - Number: "00170"
+      Title: Hallenbad Drautalperle 
+      Extension: MTS
+    - Number: "00171"
+      Title: Hallenbad Drautalperle 
+      Extension: MTS
+    - Number: "00172"
+      Title: Valentin schwimmt im Hallenbad Drautalperle 
+      Extension: MTS
+    - Number: "00173"
+      Title: Georg und Henry tauchen im Hallenbad Drautalperle 
+      Extension: MTS
+    - Number: "00174"
+      Title: Hallenbad Drautalperle 
+      Extension: MTS
+    - Number: "00175"
+      Title: Hallenbad Drautalperle 
+      Extension: MTS
+    - Number: "00176"
+      Title: Fahren mit Elektroboot 
+      Extension: MTS
+    - Number: "00177"
+      Title: Fahren mit Elektroboot 
+      Extension: MTS
+    - Number: "00178"
+      Title: Springen vom Steg mit Valentin 
+      Extension: MTS
+      
