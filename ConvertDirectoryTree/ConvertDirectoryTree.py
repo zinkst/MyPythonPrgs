@@ -8,15 +8,14 @@ preserving the directory structure.
 import os
 import fnmatch
 import shutil
-#import glob
 import sys
 import re
 import string
 import logging
 import logging.config 
-#from xml import dom
-from xml.dom import minidom
-from xml.dom import Node
+import json
+import yaml
+
 
 ############################################################################
 def findTGTFileName(srcCompleteFileName,srcDirName,tgtDirName):
@@ -31,7 +30,7 @@ def findTGTFileName(srcCompleteFileName,srcDirName,tgtDirName):
     (tgtSubdirName,tail)=os.path.split(tgtCompleteFileName)
     logging.debug(" tgtSubdirName = " + tgtDirName)
     if not os.path.exists(tgtSubdirName):
-        os.makedirs(tgtSubdirName, 0775)
+        os.makedirs(tgtSubdirName, mode=0o775 )
     return tgtCompleteFileName
      
 ############################################################################
@@ -47,60 +46,30 @@ def initLogger():
         rootLogger.setLevel(logging.INFO)
     return rootLogger
 
-############################################################################
-def readConfigFromXML(configFileName):
-    try:
-        xmldoc = minidom.parse(configFileName)
-    except IOError:
-        print "config file " + configFileName + " not found"
-        sys.exit(1)
-        
-    #print xmldoc.toxml().encode("utf-8")
-    logging.debug(xmldoc.toxml(defaultEncoding))
-    configNode = xmldoc.firstChild
-    for l1Node in configNode.childNodes:
-        if l1Node.nodeName == sys.platform:
-            for l2Node in l1Node.childNodes:
-                if l2Node.nodeName == "srcDirName":
-                    """ Zugriff auf den Wert des tags """
-                    #srcDirName = l2Node.getAttribute("value").encode(defaultEncoding)
-                    srcDirName=l2Node.firstChild.nodeValue.encode(defaultEncoding)
-                if l2Node.nodeName == "tgtDirName":
-                    """ Zugriff auf ein Attribut des tags """
-                    tgtDirName = l2Node.getAttribute("value").encode(defaultEncoding)
-                if l2Node.nodeName == "toolName":
-                    toolName = l2Node.getAttribute("value").encode(defaultEncoding)
-         
-        elif l1Node.nodeName == "generic":
-            for l2Node in l1Node.childNodes:
-                if l2Node.nodeName == "toolOptions":
-                    toolOptions = l2Node.getAttribute("value").encode(defaultEncoding)
-                if l2Node.nodeName == "fileFilter":
-                    fileFilter = l2Node.getAttribute("value").encode(defaultEncoding)
-             
-    logging.debug("srcDirName = %s" % srcDirName) 
-    logging.debug("tgtDirName = %s" % tgtDirName) 
-    logging.debug("toolName = %s" % toolName) 
-    logging.debug("toolOptions = %s" % toolOptions) 
-    logging.debug("fileFilter = %s" % fileFilter) 
-    
-    inputParams["srcDirName"]=srcDirName.encode(defaultEncoding)
-    inputParams["tgtDirName"]=tgtDirName.encode(defaultEncoding)
-    inputParams["toolName"]=toolName.encode(defaultEncoding)
-    inputParams["toolOptions"]=toolOptions.encode(defaultEncoding)
-    inputParams["fileFilter"]=fileFilter.encode(defaultEncoding)
-    
-    return (inputParams)
-
 ###################################################################################################
 
 ############################################################################
-def processFile(srcCompleteFileName, tgtCompleteFileName, toolName, toolOptions):
-    command = "%s %s %s >%s" % (toolName,toolOptions,srcCompleteFileName,tgtCompleteFileName)
-    print command
-    #os.system(command)
-
-
+def processFile(srcCompleteFileName, tgtDirName, toolName, toolOptions):
+    if toolOptions == "flat":
+        fullTargetName = os.path.join(tgtDirName, os.path.basename(srcCompleteFileName))
+    elif toolOptions == "preserveDirStructure":
+        fullTargetName=findTGTFileName(srcCompleteFileName, inputParams['srcDirName'], tgtDirName)
+    else:   
+      logging.error("unknown option %s" % toolOptions)
+      exit
+      
+    if not os.path.exists(fullTargetName):
+      if toolName == "copy":
+        logging.info("shutil.copy2(\"%s\",\"%s\"" % (srcCompleteFileName,tgtDirName ))
+        shutil.copy2(srcCompleteFileName,fullTargetName)
+      elif toolName == "symlink":
+        logging.info("os.symlink( %s ,%s )" % (srcCompleteFileName,tgtDirName ))
+        os.symlink(srcCompleteFileName, fullTargetName)
+      else:   
+        logging.error("unknown command %s" % toolName)
+    else:
+        logging.info("File.exists(%s )" % (fullTargetName ))
+              
 ############################################################################
 # main starts here
 # global variables
@@ -113,15 +82,15 @@ else:
   defaultEncoding="UTF-8"
 
 if len(sys.argv) == 1 :
-    print description
-    print sys.argv[0] + "<xml_configfile>"
-    configFileName = 'ConvertDirectoryTreeConfig.xml'
+    print(description)
+    print((sys.argv[0] + "<xml_configfile>"))
+    configFileName = 'ConvertDirectoryTreeConfig.yaml'
 else:
     configFileName=sys.argv[1]
 
-inputParams={}
+with open(configFileName, 'r',encoding='utf-8') as cfgfile:
+    inputParams = yaml.load(cfgfile)
 
-inputParms = readConfigFromXML(configFileName)
 
 for Verz, VerzList, DateiListe in os.walk (inputParams["srcDirName"]):
     logging.debug(" VerzList = " + str(VerzList) )
@@ -130,8 +99,8 @@ for Verz, VerzList, DateiListe in os.walk (inputParams["srcDirName"]):
         srcCompleteFileName  = os.path.join(Verz,Datei)
         logging.debug(" srcCompleteFileName  = " + srcCompleteFileName)
         if fnmatch.fnmatch(srcCompleteFileName, inputParams["fileFilter"]):
-            tgtCompleteFileName = findTGTFileName(srcCompleteFileName, inputParams["srcDirName"],inputParams["tgtDirName"])
-            processFile(srcCompleteFileName, tgtCompleteFileName, inputParams["toolName"],inputParams["toolOptions"])
+            #tgtCompleteFileName = findTGTFileName(srcCompleteFileName, inputParams["srcDirName"],inputParams["tgtDirName"])
+            processFile(srcCompleteFileName, inputParams["tgtDirName"], inputParams["toolName"],inputParams["toolOptions"])
             
-print ("successfully transfered %s " % inputParams["srcDirName"])
+print(("successfully transfered %s " % inputParams["srcDirName"]))
 
