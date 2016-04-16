@@ -1,26 +1,27 @@
 # use production or development config
-configuration: develop
+configuration: production
 #configuration: production
 
-#loglevel: DEBUG
-loglevel: INFO
+loglevel: DEBUG
+#loglevel: INFO
 fileFilter: mp3 
 develop:
   #linkDirName: /links/Stefan/myPrg/MyPythonPrgs/ProcessMp3sInDir/testdata/src/car_links
-  linkDirName: /links/Stefan/myPrg/MyPythonPrgs/ProcessMp3sInDir/testdata/src/Sammlung
-  tgtDirName:  /links/Stefan/myPrg/MyPythonPrgs/ProcessMp3sInDir/testdata/tgt
-  m3uDirName: /links/Stefan/myPrg/MyPythonPrgs/ProcessMp3sInDir/testdata/tgt/Playlists
-  srcDirName: /links/Stefan/myPrg/MyPythonPrgs/ProcessMp3sInDir/testdata/src/Sammlung
+  linkDirName: /links/Stefan/privat/myPrg/MyPythonPrgs/ProcessMp3sInDir/testdata/src/Sammlung
+  tgtDirName:  /links/Stefan/privat/myPrg/MyPythonPrgs/ProcessMp3sInDir/testdata/tgt
+  m3uDirName: /links/Stefan/privat/myPrg/MyPythonPrgs/ProcessMp3sInDir/testdata/tgt/Playlists
+  srcDirName: /links/Stefan/privat/myPrg/MyPythonPrgs/ProcessMp3sInDir/testdata/src/Sammlung
   ratingThreshold: 0.4
   # use lame to renencode 
   reencode: false
   lame_params: -V 8
 production:
   #linkDirName: /local/backup/Musik/car_links
-  linkDirName:  /local/backup/Musik/Sammlung/Singles  
-  tgtDirName:   /local/backup/Musik/BesteBewertung
-  m3uDirName:   /local/backup/Musik/Playlists
-  srcDirName:  /local/backup/Musik/Sammlung
+  linkDirName:  /links/Musik/Sammlung  
+  tgtDirName:   /links/Musik/BesteBewertung
+  m3uDirName:   /links/Musik/Playlists
+  srcDirName:  /links/Musik/Sammlung
+  dirNameOnFiler: /shares/Filer/Musik/Sammlung/
   #srcDirName: /local/backup/Musik/Sammlung/Alben/Coldplay
   ratingThreshold: 0.4
   # use lame to renencode 
