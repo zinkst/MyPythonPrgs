@@ -33,10 +33,11 @@ production:
   srcDirName:  /links/Musik/Sammlung
   dirNameOnFiler: /shares/Filer/Musik/Sammlung/
   #srcDirName: /local/backup/Musik/Sammlung/Alben/Coldplay
-  srcPlaylistFile: /links/Musik/Stefan/2 Sterne.m3u
+  srcPlaylistFile: /links/Musik/Stefan/3,5 Sterne.m3u
+#  srcPlaylistFile: /links/Musik/Stefan/test.m3u
   # srcType [ dir | playlist ]
   srcType: playlist
-  newFMPSRating: 0.4
+  newFMPSRating: 0.7
   ratingThreshold: 0.4
   # use lame to renencode 
   reencode: false

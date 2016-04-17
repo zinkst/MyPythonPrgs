@@ -444,16 +444,18 @@ logging.debug(inputParams)
 if inputParams['srcType'] == 'dir':
   logging.info("input Type directory")
   filesToProcessDict = processDirForMP3s(inputParams, logging)
+  for curFile in filesToProcessDict:
+    pass
+    #copyMP3ToTgtDir(curFile['srcCompleteFileName'], inputParams, curFile['TAGS'], curFile['EZID3'])
+  #writeM3UPlaylistForMatchingMP3s(inputParams, logging, filesToProcessDict)
+
 elif inputParams['srcType'] == 'playlist': 
   logging.info("input Type playlist")
   filesToProcessDict = readPlaylistEntries(inputParams)
   newFMPSRating=inputParams['newFMPSRating']
   setRatingForFiles(filesToProcessDict, newFMPSRating)
+  logging.info("Number of files processed: " + str(len(filesToProcessDict)) )
 
-for curFile in filesToProcessDict:
-  #entry = {'srcCompleteFileName':srcCompleteFileName, 'TAGS':f.tags, 'EZID3':ezid3}
-  copyMP3ToTgtDir(curFile['srcCompleteFileName'], inputParams, curFile['TAGS'], curFile['EZID3'])
-writeM3UPlaylistForMatchingMP3s(inputParams, logging, filesToProcessDict)
             
 print ("successfully transfered %s " % inputParams["srcDirName"])
 
