@@ -1,9 +1,13 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-description = """This program searches a given Source Directory for files and performs 
-a given operation (encode from asciii to utf8). The reencoded files are stored under target directory
-preserving the directory structure. 
+description = """This program has two modies:
+As input you can either give a Source Directory or a file with list files to process 
+Currently when a directory is given it search for files with rating equal or higher the ratingThreshold and 
+copies found files to the target dir with an indes structure
+
+When a playlist is given default is to add the newFMPSRating is set for all found files. Also POPM and RATING tags are set accordingly
+ 
 """
 
 import os
@@ -90,7 +94,7 @@ def tagFoundButUnratedFile(srcCompleteFileName, toolName, toolOptions,foundNoRat
     mutID3.save()
 
 ############################################################################
-def setCompilationTag(srcCompleteFileName, foundNoRating,foundWithRating):
+def setCompilationTag(srcCompleteFileName):
     """
     set the compilation tag TCMP to file
     """
@@ -99,66 +103,10 @@ def setCompilationTag(srcCompleteFileName, foundNoRating,foundWithRating):
     mutID3.add(TCMP(encoding=3, text='1'))
     mutID3.save()
     
-############################################################################
-def resyncMP3Ratings(srcCompleteFileName, foundNoRating,foundWithRating):
-    """
-    This method resyncs FMPS_RATING to all files given. 
-    It resyncs POPM (e.g Windows Media Player) and RATING (e.g. xbmc) tags to files 
-    if no FMPS_RATING is found nothing is done.    
-    """
-    f = taglib.File(srcCompleteFileName)
-    mutID3 = ID3(srcCompleteFileName)
-    if 'FMPS_RATING' in f.tags:
-      changedTag=False
-      try:
-        curRating = float(f.tags['FMPS_RATING'][0])
-        logging.info("FMPS_RATING found: " + os.path.basename(srcCompleteFileName) + "tags" + str(f.tags))
-        #logging.info(os.path.basename(srcCompleteFileName) + " mutID3tags: " + str(mutID3))
-        new_entry={'srcCompleteFileName' : srcCompleteFileName , 'TAGS' : f.tags }
-        foundWithRating.append(new_entry)
-        # pytaglib can only write  tags in uppercase so these 2 lines below do not work
-        # add xbmcratings see http://kodi.wiki/view/Adding_music_to_the_library#Ratings_in_ID3_tags
-        # handle POPM  
-        newPopmRating=math.trunc(curRating*255)
-        try:
-          curPOPMRating=mutID3.getall('POPM')[0].rating
-          if curPOPMRating != newPopmRating:
-            mutID3.delall('POPM')
-            mutID3.add(POPM(rating=newPopmRating))
-            changedTag=True
-          else:
-            logging.debug("POPM tag found and already synced: " + os.path.basename(srcCompleteFileName))  
-        except KeyError:
-          logging.debug('POPM rating did not exist:  adding ... it') 
-          mutID3.add(POPM(rating=newPopmRating))
-          changedTag=true
-       
-        # handle RATING  
-        newRATING=math.trunc(curRating*5)
-        try:
-          curRATINGStr=mutID3.getall('TXXX:RATING')[0].text[0]
-          curRATING=float(curRATINGStr)
-          if curRATING != newRATING:
-            mutID3.add(TXXX(encoding=3, desc='RATING', text=str(newRATING)))
-            changedTag=True
-          else:
-            logging.debug("RATING found and already synced: " + os.path.basename(srcCompleteFileName))  
-        except (KeyError, IndexError) as e :
-          logging.debug('RATING rating did not exist:  adding ... it') 
-          mutID3.add(TXXX(encoding=3, desc='RATING', text=str(newRATING)))
-          changedTag=True
-        if changedTag:  
-          mutID3.save()
-      except ValueError:
-        logging.error(f.tags['FMPS_RATING'][0] + " not a float")
-    else:   
-      logging.info("No Rating set for " + os.path.basename(srcCompleteFileName))
-      new_entry={'srcCompleteFileName' : srcCompleteFileName , 'TAGS' : f.tags }
-      foundNoRating.append(new_entry)
       
  
 ############################################################################
-def processFoundDicts(inputParams, logging,foundNoRating,foundWithRating,foundWithUpperCaseRating):
+def writeDictsToFile(inputParams, logging,foundNoRating,foundWithRating,foundWithUpperCaseRating):
   
   if not os.path.exists(inputParams['tgtDirName']):
      logging.debug("Creating" + inputParams['tgtDirName'])
@@ -219,23 +167,23 @@ def testMutagen(logging, srcCompleteFileName):
     logging.info(audio2)
 
 ############################################################################
-def processDirForUpdateTagsForFile(inputParams, logging):
-  foundNoRating = []
-  foundWithRating = []
-  foundWithUpperCaseRating = []
-  inputParams["srcDirName"]=inputParams["linkDirName"]
-  for Verz, VerzList, DateiListe in os.walk(inputParams["linkDirName"]):
-    logging.debug(" VerzList = " + str(VerzList))
-    logging.debug(" DateiListe = " + str(DateiListe))
-    for Datei in sorted(DateiListe):
-      srcCompleteFileName = os.path.join(Verz, Datei)
-      logging.debug(" srcCompleteFileName  = " + srcCompleteFileName) 
-      if fnmatch.fnmatch(srcCompleteFileName, '*.' + config["fileFilter"]):
-        #tagFoundButUnratedFile(srcCompleteFileName, inputParams["toolName"],inputParams["toolOptions"],foundNoRating,foundWithRating,foundWithUpperCaseRating)
-        resyncMP3Ratings(srcCompleteFileName, foundNoRating, foundWithRating)
-        #setCompilationTag(srcCompleteFileName, foundNoRating, foundWithRating)
-        #testMutagen(logging, srcCompleteFileName)
-  processFoundDicts(inputParams, logging,foundNoRating,foundWithRating,foundWithUpperCaseRating) 
+# def processDirForUpdateTagsForFile(inputParams, logging):
+#   foundNoRating = []
+#   foundWithRating = []
+#   foundWithUpperCaseRating = []
+#   inputParams["srcDirName"]=inputParams["linkDirName"]
+#   for Verz, VerzList, DateiListe in os.walk(inputParams["linkDirName"]):
+#     logging.debug(" VerzList = " + str(VerzList))
+#     logging.debug(" DateiListe = " + str(DateiListe))
+#     for Datei in sorted(DateiListe):
+#       srcCompleteFileName = os.path.join(Verz, Datei)
+#       logging.debug(" srcCompleteFileName  = " + srcCompleteFileName) 
+#       if fnmatch.fnmatch(srcCompleteFileName, '*.' + config["fileFilter"]):
+#         #tagFoundButUnratedFile(srcCompleteFileName, inputParams["toolName"],inputParams["toolOptions"],foundNoRating,foundWithRating,foundWithUpperCaseRating)
+#         resyncMP3Ratings(srcCompleteFileName, foundNoRating, foundWithRating)
+#         #setCompilationTag(srcCompleteFileName, foundNoRating, foundWithRating)
+#         #testMutagen(logging, srcCompleteFileName)
+#   writeDictsToFile(inputParams, logging,foundNoRating,foundWithRating,foundWithUpperCaseRating) 
 
 
 ############################################################################
@@ -250,9 +198,9 @@ def processDirForMP3s(inputParams, logging):
       srcCompleteFileName = os.path.join(Verz, Datei)
       logging.debug(" srcCompleteFileName  = " + srcCompleteFileName) 
       if fnmatch.fnmatch(srcCompleteFileName, '*.' + config["fileFilter"]):
-        workOnRatedMP3(srcCompleteFileName,inputParams,foundNoRating,foundWithRating)
-  processFoundDicts(inputParams, logging,foundNoRating,foundWithRating,foundWithUpperCaseRating) 
-  writeM3UPlaylistForMatchingMP3s(inputParams, logging, foundWithRating)
+        findRatedMP3s(srcCompleteFileName,inputParams,foundNoRating,foundWithRating)
+  writeDictsToFile(inputParams, logging,foundNoRating,foundWithRating,foundWithUpperCaseRating) 
+  return foundWithRating
   
 ############################################################################
 def findTgtDirName(inputParams, f, logging):
@@ -287,10 +235,11 @@ def findTgtDirName(inputParams, f, logging):
     return tgtFullDirName
 
 ############################################################################
-def copyMP3ToTgtDir(srcCompleteFileName, inputParams, foundWithRating, f, ezid3):
+def copyMP3ToTgtDir(srcCompleteFileName, inputParams, f, ezid3):
   sep='_'
-  new_entry = {'srcCompleteFileName':srcCompleteFileName, 'TAGS':f.tags, 'EZID3':ezid3}
-  foundWithRating.append(new_entry)
+  #new_entry = {'srcCompleteFileName':srcCompleteFileName, 'TAGS':f.tags, 'EZID3':ezid3}
+  #foundWithRating.append(new_entry)
+    
   discnumber = None
   tracknumber = None
   album = None
@@ -334,7 +283,7 @@ def copyMP3ToTgtDir(srcCompleteFileName, inputParams, foundWithRating, f, ezid3)
 
 ############################################################################
 
-def workOnRatedMP3(srcCompleteFileName,inputParams,foundNoRating,foundWithRating):
+def findRatedMP3s(srcCompleteFileName,inputParams,foundNoRating,foundWithRating):
     # {'TITLE': ['Foot of the mountain'], 'FMPS_RATING': ['0.8'], 'TRACKNUMBER': ['04/10'], 'COMMENT': ['Created with EAC/REACT v2.0.akku.b03, 2010-01-13'], 'FMPS_RATING_AMAROK_SCORE': ['0.0975'], 'REPLAYGAIN_TRACK_PEAK': ['0.557932'], 'ALBUM': ['Foot of the mountain'], 'ENCODING': ['LAME 3.97 -V2 --vbr-new --noreplaygain --nohist'], 'MP3GAIN_ALBUM_MINMAX': ['136,251'], 'ARTIST': ['A-HA'], 'REPLAYGAIN_ALBUM_GAIN': ['-3.470000'], 'MP3GAIN_UNDO': ['+004,+004,N'], 'MP3GAIN_MINMAX': ['138,251'], 'REPLAYGAIN_ALBUM_PEAK': ['0.606102'], 'COMMENT:ID3V1 COMMENT': ['Created with EAC/REACT v2.0.'], 'REPLAYGAIN_TRACK_GAIN': ['-4.040000 dB'], 'GENRE': ['Pop'], 'DATE': ['2009'], 'ENCODEDBY': ['SZ']}
     #logging.debug(" srcCompleteFileName = " + srcCompleteFileName)
     #logging.debug(" tgtDirName = " + inputParams["tgtDirName"])
@@ -350,13 +299,15 @@ def workOnRatedMP3(srcCompleteFileName,inputParams,foundNoRating,foundWithRating
         except ValueError:
           logging.error(f.tags['FMPS_RATING'][0] + " not a float")
         if curRating >= inputParams['ratingThreshold']:
-          copyMP3ToTgtDir(srcCompleteFileName, inputParams, foundWithRating, f, ezid3)
+          new_entry = {'srcCompleteFileName':srcCompleteFileName, 'TAGS':f, 'EZID3':ezid3}
+          foundWithRating.append(new_entry)
+          #copyMP3ToTgtDir(srcCompleteFileName, inputParams, foundWithRating, f, ezid3)
         else:
           logging.debug("tagged file with rating " + f.tags['FMPS_RATING'][0] + " under threshold: " + srcCompleteFileName)
     else:
         new_entry={'srcCompleteFileName' : srcCompleteFileName , 'TAGS' : f.tags }
         foundNoRating.append(new_entry)
-        logging.debug("untagged file " + srcCompleteFileName)
+        logging.debug("unrated file " + srcCompleteFileName)
 
 ############################################################################
 """
@@ -390,6 +341,80 @@ def writeM3UPlaylistForMatchingMP3s(inputParams, logging,foundWithRating):
        
   
 ############################################################################
+def readPlaylistEntries(inputParams):
+  playListEntries = []
+  logging.info("Prcessing Playlist " + inputParams['srcPlaylistFile'])
+  with open(inputParams['srcPlaylistFile']) as playListFile:
+    for curLine in playListFile:
+      if not curLine.startswith('#'):
+        entry=curLine.strip()
+        f = taglib.File(entry)
+        logging.debug(f.tags)
+        ezid3 = EasyID3(entry)
+        newEntry = {'srcCompleteFileName':entry, 'TAGS':f, 'EZID3':ezid3}
+        logging.debug(newEntry)
+        playListEntries.append(newEntry)
+  return playListEntries
+
+############################################################################
+def setRatingForFiles(filesToProcessDict, newFMPSRating):
+  for curFile in filesToProcessDict:
+    logging.info("set rating for "+ curFile['srcCompleteFileName'] + " to " + str(newFMPSRating) )
+    mutID3 = ID3(curFile['srcCompleteFileName'])
+    changedTag=False
+    curFMPSRating = mutID3.get(u'TXXX:FMPS_Rating')
+    if curFMPSRating == None:
+      # No existing tag TXXX for FMPS has been found, so create one...
+      logging.debug("no FMPS_RATING found: " + os.path.basename(curFile['srcCompleteFileName']))
+      mutID3.add(TXXX(encoding=3, desc=u"FMPS_Rating", text=[str(newFMPSRating)]))
+      changedTag=True
+    else:
+      newFMPSRating=float(curFMPSRating[0])
+    syncMP3Ratings(mutID3, newFMPSRating)
+    if changedTag:  
+      mutID3.save()
+   
+############################################################################
+def syncMP3Ratings(mutID3, newFMPSRating):
+  """
+  This method resyncs FMPS_RATING to all files given. 
+  It resyncs POPM (e.g Windows Media Player) and RATING (e.g. xbmc) tags to files 
+  it is given that FMPS_RATING is set
+  """
+  changedTag=False
+  newPopmRating=math.trunc(newFMPSRating*255)
+  try:
+    curPOPMRating=mutID3.getall('POPM')[0].rating
+    if curPOPMRating != newPopmRating:
+      mutID3.delall('POPM')
+      mutID3.add(POPM(rating=newPopmRating))
+      changedTag=True
+    else:
+      logging.debug("POPM tag found and already synced: ")  
+  except (KeyError, IndexError) as e:
+    logging.debug('POPM rating did not exist:  adding ... it') 
+    mutID3.add(POPM(rating=newPopmRating))
+    changedTag=True
+ 
+  # handle RATING  
+  newRATING=math.trunc(newFMPSRating*5)
+  try:
+    curRATINGStr=mutID3.getall('TXXX:RATING')[0].text[0]
+    curRATING=float(curRATINGStr)
+    if curRATING != newRATING:
+      mutID3.add(TXXX(encoding=3, desc='RATING', text=str(newRATING)))
+      changedTag=True
+    else:
+      logging.debug("RATING found and already synced: " )  
+  except (KeyError, IndexError) as e :
+    logging.debug('RATING rating did not exist:  adding ... it') 
+    mutID3.add(TXXX(encoding=3, desc='RATING', text=str(newRATING)))
+    changedTag=True
+  if changedTag:  
+    mutID3.save()
+
+    
+############################################################################
 # main starts here
 # global variables
 
@@ -414,7 +439,19 @@ inputParams = config[configuration]
 logging.debug(inputParams)
 
 #processDirForUpdateTagsForFile(inputParams, logging)
-processDirForMP3s(inputParams, logging)
+if inputParams['srcType'] == 'dir':
+  logging.info("input Type directory")
+  filesToProcessDict = processDirForMP3s(inputParams, logging)
+elif inputParams['srcType'] == 'playlist': 
+  logging.info("input Type playlist")
+  filesToProcessDict = readPlaylistEntries(inputParams)
+  newFMPSRating=inputParams['newFMPSRating']
+  setRatingForFiles(filesToProcessDict, newFMPSRating)
+
+for curFile in filesToProcessDict:
+  #entry = {'srcCompleteFileName':srcCompleteFileName, 'TAGS':f.tags, 'EZID3':ezid3}
+  copyMP3ToTgtDir(curFile['srcCompleteFileName'], inputParams, curFile['TAGS'], curFile['EZID3'])
+writeM3UPlaylistForMatchingMP3s(inputParams, logging, filesToProcessDict)
             
 print ("successfully transfered %s " % inputParams["srcDirName"])
 
