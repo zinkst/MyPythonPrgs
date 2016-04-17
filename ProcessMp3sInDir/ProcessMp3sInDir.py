@@ -117,7 +117,7 @@ def writeDictsToFile(inputParams, logging,foundNoRating,foundWithRating,foundWit
      for entry in foundWithRating:
        #output=(str(entry['FMPS_RATING']) + '|' + str(entry['ARTIST']) + '|' + str(entry['TITLE']) + '|' + str(entry['srcCompleteFileName']) )
        output=(entry['srcCompleteFileName'])
-       logging.info(output)
+       logging.debug(output)
        withRatingfile.write(str(output) + '\n') 
   NoRatingFileName=os.path.join(inputParams['tgtDirName'], 'NoRating.lst')
   logging.debug("NoRatingFileName = " + NoRatingFileName)
@@ -125,7 +125,7 @@ def writeDictsToFile(inputParams, logging,foundNoRating,foundWithRating,foundWit
      for entry in foundNoRating:
        #output=(str(entry['ARTIST']) + '|' + str(entry['TITLE']) + '|' + str(entry['srcCompleteFileName']) )
        output=(entry)
-       logging.info(output)
+       logging.debug(output)
        noRatingFile.write(str(output)+ '\n')
   UpperCaseRatingFileName=os.path.join(inputParams['tgtDirName'], 'UpperCaseRating.lst')
   logging.debug("UpperCaseRatingFileName = " + UpperCaseRatingFileName)
@@ -133,7 +133,7 @@ def writeDictsToFile(inputParams, logging,foundNoRating,foundWithRating,foundWit
      for entry in foundWithUpperCaseRating:
        #output=(str(entry['ARTIST']) + '|' + str(entry['TITLE']) + '|' + str(entry['srcCompleteFileName']) )
        output=(entry)
-       logging.info(output)
+       logging.debug(output)
        upperCaseRatingFile.write(str(output)+ '\n')
 
 ############################################################################
@@ -301,6 +301,7 @@ def findRatedMP3s(srcCompleteFileName,inputParams,foundNoRating,foundWithRating)
         if curRating >= inputParams['ratingThreshold']:
           new_entry = {'srcCompleteFileName':srcCompleteFileName, 'TAGS':f, 'EZID3':ezid3}
           foundWithRating.append(new_entry)
+          logging.info("rating " + str(curRating) + " filename: " + os.path.basename(srcCompleteFileName))
           #copyMP3ToTgtDir(srcCompleteFileName, inputParams, foundWithRating, f, ezid3)
         else:
           logging.debug("tagged file with rating " + f.tags['FMPS_RATING'][0] + " under threshold: " + srcCompleteFileName)
@@ -445,17 +446,15 @@ if inputParams['srcType'] == 'dir':
   logging.info("input Type directory")
   filesToProcessDict = processDirForMP3s(inputParams, logging)
   for curFile in filesToProcessDict:
-    pass
-    #copyMP3ToTgtDir(curFile['srcCompleteFileName'], inputParams, curFile['TAGS'], curFile['EZID3'])
-  #writeM3UPlaylistForMatchingMP3s(inputParams, logging, filesToProcessDict)
+    #pass
+    copyMP3ToTgtDir(curFile['srcCompleteFileName'], inputParams, curFile['TAGS'], curFile['EZID3'])
+  writeM3UPlaylistForMatchingMP3s(inputParams, logging, filesToProcessDict)
 
 elif inputParams['srcType'] == 'playlist': 
   logging.info("input Type playlist")
   filesToProcessDict = readPlaylistEntries(inputParams)
   newFMPSRating=inputParams['newFMPSRating']
   setRatingForFiles(filesToProcessDict, newFMPSRating)
-  logging.info("Number of files processed: " + str(len(filesToProcessDict)) )
 
-            
-print ("successfully transfered %s " % inputParams["srcDirName"])
+logging.info("Finished -  Number of files processed: " + str(len(filesToProcessDict)) )
 
