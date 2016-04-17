@@ -5,8 +5,8 @@
 #When a playlist is given default is to add the newFMPSRating is set for all found files. Also POPM and RATING tags are set accordingly
 
 # use production or development config
-configuration: develop
-#configuration: production
+#configuration: develop
+configuration: production
 
 #loglevel: DEBUG
 loglevel: INFO
@@ -33,10 +33,10 @@ production:
   srcDirName:  /links/Musik/Sammlung
   dirNameOnFiler: /shares/Filer/Musik/Sammlung/
   #srcDirName: /local/backup/Musik/Sammlung/Alben/Coldplay
-  srcPlaylistFile: /links/Stefan/privat/myPrg/MyPythonPrgs/ProcessMp3sInDir/testdata/src/playlist.txt
+  srcPlaylistFile: /links/Musik/Stefan/2 Sterne.m3u
   # srcType [ dir | playlist ]
   srcType: playlist
-  newFMPSRating: 0.8
+  newFMPSRating: 0.4
   ratingThreshold: 0.4
   # use lame to renencode 
   reencode: false

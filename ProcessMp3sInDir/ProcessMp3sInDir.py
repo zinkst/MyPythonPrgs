@@ -32,7 +32,7 @@ import subprocess
 #from xml import dom
 #from xml.dom import minidom
 #from xml.dom import Node
-
+import urllib.parse
 
 
      
@@ -347,7 +347,9 @@ def readPlaylistEntries(inputParams):
   with open(inputParams['srcPlaylistFile']) as playListFile:
     for curLine in playListFile:
       if not curLine.startswith('#'):
-        entry=curLine.strip()
+        entry=urllib.parse.unquote(curLine.strip())
+        if entry.find('//') != -1:
+          entry=entry[entry.find('//')+2:]
         f = taglib.File(entry)
         logging.debug(f.tags)
         ezid3 = EasyID3(entry)
