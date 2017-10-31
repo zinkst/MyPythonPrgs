@@ -205,6 +205,9 @@ def processDirForMP3s(inputParams, logging):
 ############################################################################
 def findTgtDirName(inputParams, f, logging):
     if 'ARTIST' in f.tags:
+        artist=f.tags['ARTIST'][0]
+        if artist.endswith('.'):
+            artist=artist[:-1]
         startLetter=f.tags['ARTIST'][0][0]
         logging.debug("startLetter = " + startLetter)
         letterCode=ord(startLetter.upper())
@@ -226,7 +229,7 @@ def findTgtDirName(inputParams, f, logging):
           letterSubdir = "VWXYZ";
         else:
            letterSubdir = "Anderer";
-        tgtFullDirName = os.path.join(inputParams["tgtDirName"], letterSubdir,f.tags['ARTIST'][0])
+        tgtFullDirName = os.path.join(inputParams["tgtDirName"], letterSubdir,artist)
     else:
         tgtFullDirName = os.path.join(inputParams["tgtDirName"], 'UNBEKANNT')
     if not os.path.exists(tgtFullDirName):
@@ -276,9 +279,14 @@ def copyMP3ToTgtDir(srcCompleteFileName, inputParams, f, ezid3):
     if inputParams['reencode']:
       subprocess.call(['lame', inputParams['lame_params'], srcCompleteFileName, tgtCompleteFilename])
     else:
-      shutil.copy(srcCompleteFileName, tgtCompleteFilename)
+      shutil.copy2(srcCompleteFileName, tgtCompleteFilename)
   else:
     logging.debug("already existing " + tgtCompleteFilename)
+    if ( os.path.getmtime(srcCompleteFileName) != os.path.getmtime(tgtCompleteFilename) ):
+      logging.info("File in source is newer: " + srcCompleteFileName + " => " + tgtCompleteFilename)
+      shutil.copy2(srcCompleteFileName, tgtCompleteFilename)
+       
+     
   
 
 ############################################################################
