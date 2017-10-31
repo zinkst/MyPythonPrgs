@@ -36,7 +36,7 @@ production:
   srcPlaylistFile: /links/Musik/Stefan/3,5 Sterne.m3u
 #  srcPlaylistFile: /links/Musik/Stefan/test.m3u
   # srcType [ dir | playlist ]
-  srcType: playlist
+  srcType: dir
   newFMPSRating: 0.7
   ratingThreshold: 0.4
   # use lame to renencode 

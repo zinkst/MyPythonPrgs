@@ -63,7 +63,7 @@ def tagFoundButUnratedFile(srcCompleteFileName, toolName, toolOptions,foundNoRat
     logging.debug("working dir: " + os.getcwd())
     rating='0.4'
     if 'FMPS_RATING' in f.tags:
-      logging.info("Rating with wrong case set for " + srcCompleteFileName)
+      logging.debug("Rating with wrong case set for " + srcCompleteFileName)
       rating=f.tags['FMPS_RATING'][0]
       logging.debug(str(f.tags['FMPS_RATING']) + str(f.tags))
       new_entry={'srcCompleteFileName' : srcCompleteFileName , 'TAGS' : f.tags }
@@ -74,12 +74,12 @@ def tagFoundButUnratedFile(srcCompleteFileName, toolName, toolOptions,foundNoRat
       mutID3.add(TXXX(encoding=3, desc='FMPS_Rating', text=rating))
       # add xbmcratings see http://kodi.wiki/view/Adding_music_to_the_library#Ratings_in_ID3_tags
     elif 'FMPS_Rating' in f.tags:
-      logging.info("Rating set for " + srcCompleteFileName)
+      logging.debug("Rating set for " + srcCompleteFileName)
       logging.debug(str(f.tags['FMPS_Rating']) + str(f.tags))
       foundWithRating.append(new_entry)
       rating=f.tags['FMPS_Rating'][0]
     else:   
-      logging.info("No Rating set for " + srcCompleteFileName)
+      logging.debug("No Rating set for " + srcCompleteFileName)
       new_entry={'srcCompleteFileName' : srcCompleteFileName , 'TAGS' : f.tags }
       foundNoRating.append(new_entry)
       mutID3.add(TXXX(encoding=3, desc='FMPS_Rating', text=u'0.4'))
@@ -99,7 +99,7 @@ def setCompilationTag(srcCompleteFileName):
     set the compilation tag TCMP to file
     """
     mutID3 = ID3(srcCompleteFileName)
-    logging.info("setting compilation tag for " + os.path.basename(srcCompleteFileName))
+    logging.debug("setting compilation tag for " + os.path.basename(srcCompleteFileName))
     mutID3.add(TCMP(encoding=3, text='1'))
     mutID3.save()
     
@@ -140,7 +140,7 @@ def writeDictsToFile(inputParams, logging,foundNoRating,foundWithRating,foundWit
 
 def testMutagen(logging, srcCompleteFileName):
     audio = MP3(srcCompleteFileName, ID3=EasyID3)
-    logging.info(audio.pprint())
+    logging.debug(audio.pprint())
 #         MPEG 1 layer 3, 160000 bps, 44100 Hz, 270.63 seconds (audio/mp3)
 #         album=Odyssey
 #         artist=Yngwie J. Malmsteen's Rising Force
@@ -271,8 +271,8 @@ def copyMP3ToTgtDir(srcCompleteFileName, inputParams, f, ezid3):
   tgtFileName = tgtFileName.replace('?', '_')
 # tgtFileName=tgtFileName.replace('!','_')
   tgtCompleteFilename = os.path.join(tgtFullDirName, tgtFileName)
-  logging.info(srcCompleteFileName + " => " + tgtCompleteFilename)
   if not os.path.exists(tgtCompleteFilename):
+    logging.info("New File: " + srcCompleteFileName + " => " + tgtCompleteFilename)
     if inputParams['reencode']:
       subprocess.call(['lame', inputParams['lame_params'], srcCompleteFileName, tgtCompleteFilename])
     else:
@@ -303,6 +303,7 @@ def findRatedMP3s(srcCompleteFileName,inputParams,foundNoRating,foundWithRating)
           foundWithRating.append(new_entry)
           logging.info("rating " + str(curRating) + " filename: " + os.path.basename(srcCompleteFileName))
           #copyMP3ToTgtDir(srcCompleteFileName, inputParams, foundWithRating, f, ezid3)
+          #copyMP3ToTgtDir(srcCompleteFileName, inputParams, foundWithRating, f, ezid3)
         else:
           logging.debug("tagged file with rating " + f.tags['FMPS_RATING'][0] + " under threshold: " + srcCompleteFileName)
     else:
@@ -332,10 +333,10 @@ def writeM3UPlaylistForMatchingMP3s(inputParams, logging,foundWithRating):
        audio = MP3(entry['srcCompleteFileName'])
        duration=str(int(audio.info.length))
        output=('#EXTINF:'+duration + ',' + str(entry['EZID3']['artist'][0]) + ' - ' + str(entry['EZID3']['title'][0]) )
-       logging.info(output)
+       logging.debug(output)
        M3Ufile.write(str(output) + '\n') 
        output= str(entry['srcCompleteFileName'])
-       logging.info(output)
+       logging.debug(output)
        M3Ufile.write(str(output) + '\n') 
        
        output=(entry)
@@ -439,14 +440,16 @@ logger = initLogger(config)
 
 configuration = config["configuration"]  
 inputParams = config[configuration]
-logging.debug(inputParams)
+logging.info(inputParams)
 
 #processDirForUpdateTagsForFile(inputParams, logging)
 if inputParams['srcType'] == 'dir':
   logging.info("input Type directory")
   filesToProcessDict = processDirForMP3s(inputParams, logging)
+  logging.info("*********************************************************")
+  logging.info("processing " + str(len(filesToProcessDict)) + " files ")
+  logging.info("*********************************************************")
   for curFile in filesToProcessDict:
-    #pass
     copyMP3ToTgtDir(curFile['srcCompleteFileName'], inputParams, curFile['TAGS'], curFile['EZID3'])
   writeM3UPlaylistForMatchingMP3s(inputParams, logging, filesToProcessDict)
 
