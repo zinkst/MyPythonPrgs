@@ -33,7 +33,7 @@ import subprocess
 #from xml.dom import minidom
 #from xml.dom import Node
 import urllib.parse
-
+from time import strftime,gmtime
 
      
 ############################################################################
@@ -282,8 +282,9 @@ def copyMP3ToTgtDir(srcCompleteFileName, inputParams, f, ezid3):
       shutil.copy2(srcCompleteFileName, tgtCompleteFilename)
   else:
     logging.debug("already existing " + tgtCompleteFilename)
-    if ( os.path.getmtime(srcCompleteFileName) != os.path.getmtime(tgtCompleteFilename) ):
-      logging.info("File in source is newer: " + srcCompleteFileName + " => " + tgtCompleteFilename)
+    if ( os.path.getmtime(srcCompleteFileName) > os.path.getmtime(tgtCompleteFilename) ):
+      logging.info("File in source is newer:  " + srcCompleteFileName + "| " + strftime("%a, %d %b %Y %H:%M:%S",gmtime(os.path.getmtime(srcCompleteFileName))) +  " => " + strftime("%a, %d %b %Y %H:%M:%S",gmtime(os.path.getmtime(tgtCompleteFilename))) + "|"  + tgtCompleteFilename)
+      
       shutil.copy2(srcCompleteFileName, tgtCompleteFilename)
        
      
