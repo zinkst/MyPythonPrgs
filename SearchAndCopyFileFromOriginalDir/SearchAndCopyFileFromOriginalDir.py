@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 description = """This program handles handles directories with favorite Photos and creates a directory with absolute links to the original file
@@ -147,7 +147,7 @@ def processFileObjects(fileObjects,inputParams):
 def writeNotFoundFilesToFile(notFoundFileObjects):
     outFileName = os.path.join(inputParams['ROOT-DIR'], inputParams['COPIES-ORIG-DIR'], "notFoundFiles.txt")
 #    with open(outFileName, 'w',encoding='utf-8') as outfile:
-    with open(outFileName, 'w') as outfile:
+    with open(outFileName, 'w+') as outfile:
         for curNotFoundFileObj in notFoundFileObjects:
             outLine = curNotFoundFileObj.absCopiesOrigDateiName
             logging.info("outLine=" + outLine)
